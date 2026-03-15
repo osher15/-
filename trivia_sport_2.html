@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>טריוויה ספורט 🏆</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #e21b3c; --blue: #1368ce; --yellow: #d89e00; --green: #26890c;
+    --bg: #19103a; --card: #2a1f5a; --text: #ffffff; --timer-color: #46d3a0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    overflow-x: hidden; position: relative;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image:
+      radial-gradient(circle at 15% 20%, #3d2b8a55 0%, transparent 45%),
+      radial-gradient(circle at 85% 80%, #1a4f9955 0%, transparent 45%),
+      radial-gradient(circle at 50% 50%, #2a1f5a33 0%, transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+  .container {
+    position:relative; z-index:1; width:100%; max-width:920px;
+    padding:20px; display:flex; flex-direction:column; align-items:center; gap:16px;
+  }
+  .screen { display:none; width:100%; }
+  .screen.active { display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .trophy-anim { font-size:5rem; animation:float 2.5s ease-in-out infinite; }
+  .logo { font-size:clamp(2.4rem,6vw,4rem); font-weight:900; text-align:center; animation:popIn .7s cubic-bezier(.34,1.56,.64,1) both; line-height:1.1; }
+  .logo span { color:#ffd700; }
+  .sport-icons { font-size:2rem; letter-spacing:6px; animation:popIn .6s .2s both; }
+  .subtitle { opacity:.75; font-size:1.15rem; text-align:center; animation:popIn .6s .3s both; }
+  .start-btn {
+    background:linear-gradient(135deg,#ff6b35,#ffd700); color:#19103a; border:none;
+    padding:18px 64px; font-size:1.65rem; font-weight:900; border-radius:60px;
+    cursor:pointer; font-family:'Heebo',sans-serif; box-shadow:0 8px 32px #ffd70066;
+    transition:transform .15s,box-shadow .15s; animation:popIn .6s .4s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .start-btn:hover { transform:scale(1.07); box-shadow:0 14px 44px #ffd70099; }
+  .start-btn:active { transform:scale(.97); }
+  .meta-info { opacity:.55; font-size:.95rem; animation:popIn .5s .5s both; }
+  .progress-bar-wrap { width:100%; background:#ffffff20; border-radius:10px; height:8px; overflow:hidden; }
+  .progress-bar { height:100%; background:linear-gradient(90deg,#ffd700,#ff6b35); border-radius:10px; transition:width .5s ease; }
+  .top-bar { display:flex; justify-content:space-between; align-items:center; width:100%; }
+  .q-counter { font-size:.95rem; font-weight:700; opacity:.7; }
+  .score-display { font-size:.95rem; font-weight:700; background:#ffffff18; padding:6px 16px; border-radius:20px; }
+  .score-display span { color:#ffd700; font-size:1.1rem; }
+  .category-badge { font-size:.85rem; font-weight:700; background:#ffffff18; padding:5px 14px; border-radius:20px; opacity:.8; }
+  .timer-ring-container { position:relative; width:80px; height:80px; }
+  .timer-ring-container svg { transform:rotate(-90deg); }
+  .timer-ring-bg { fill:none; stroke:#ffffff25; stroke-width:8; }
+  .timer-ring-fg { fill:none; stroke:var(--timer-color); stroke-width:8; stroke-linecap:round; stroke-dasharray:220; stroke-dashoffset:0; transition:stroke-dashoffset 1s linear,stroke .4s; }
+  .timer-number { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:1.65rem; font-weight:900; color:var(--timer-color); transition:color .4s; }
+  .question-card {
+    background:var(--card); border-radius:20px; padding:28px 36px; width:100%;
+    text-align:center; font-size:clamp(1.1rem,2.5vw,1.45rem); font-weight:700;
+    line-height:1.55; box-shadow:0 10px 40px #00000055; min-height:90px;
+    display:flex; align-items:center; justify-content:center;
+    animation:slideDown .45s cubic-bezier(.34,1.3,.64,1) both;
+    position:relative; overflow:hidden;
+  }
+  .question-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg,#ffd700,#ff6b35,#e21b3c,#1368ce,#26890c);
+  }
+  .answers-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; width:100%; animation:slideUp .45s .1s cubic-bezier(.34,1.3,.64,1) both; }
+  .answer-btn {
+    border:none; border-radius:16px; padding:18px 20px;
+    font-size:clamp(.95rem,2vw,1.15rem); font-weight:700; font-family:'Heebo',sans-serif;
+    cursor:pointer; color:#fff; text-align:right;
+    transition:transform .12s,filter .12s,box-shadow .12s;
+    display:flex; align-items:center; gap:10px; line-height:1.35;
+    box-shadow:0 6px 22px #00000044; position:relative; overflow:hidden;
+  }
+  .answer-btn:hover:not(:disabled) { transform:translateY(-3px) scale(1.02); box-shadow:0 12px 32px #00000066; }
+  .answer-btn:active:not(:disabled) { transform:scale(.97); }
+  .answer-btn:disabled { cursor:default; }
+  .answer-btn.a { background:linear-gradient(135deg,#e21b3c,#b01530); }
+  .answer-btn.b { background:linear-gradient(135deg,#1368ce,#0c52a8); }
+  .answer-btn.c { background:linear-gradient(135deg,#d89e00,#a87900); }
+  .answer-btn.d { background:linear-gradient(135deg,#26890c,#1b6409); }
+  .answer-btn .shape { font-size:1.25rem; min-width:28px; text-align:center; }
+  .answer-btn.correct { animation:correctPulse .5s ease; filter:brightness(1.25); box-shadow:0 0 35px #46d3a099; }
+  .answer-btn.wrong { opacity:.32; transform:scale(.96); }
+  .answer-btn.reveal-correct { filter:brightness(1.3); box-shadow:0 0 40px #46d3a0bb; animation:correctPulse .6s ease; }
+  .feedback-overlay { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:100; pointer-events:none; }
+  .feedback-overlay.show { display:flex; }
+  .feedback-badge { font-size:6rem; animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both; filter:drop-shadow(0 0 24px #ffd70099); }
+  .points-popup { position:fixed; top:28%; left:50%; transform:translateX(-50%); font-size:2.6rem; font-weight:900; color:#ffd700; text-shadow:0 0 20px #ffd70099; display:none; z-index:110; pointer-events:none; }
+  .points-popup.show { display:block; animation:floatUp 1.3s ease forwards; }
+  .results-title { font-size:clamp(1.9rem,5vw,3rem); font-weight:900; text-align:center; animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both; }
+  .results-title span { color:#ffd700; }
+  .final-score-wrap { background:var(--card); border-radius:24px; padding:36px 60px; text-align:center; box-shadow:0 10px 40px #00000055; animation:popIn .5s .2s cubic-bezier(.34,1.56,.64,1) both; border:2px solid #ffd70033; }
+  .final-score-label { font-size:1rem; opacity:.65; margin-bottom:6px; }
+  .final-score-number { font-size:4.5rem; font-weight:900; color:#ffd700; line-height:1; }
+  .final-score-out-of { font-size:1.05rem; opacity:.6; margin-top:8px; }
+  .stars-row { font-size:2.4rem; margin-top:12px; letter-spacing:5px; }
+  .result-message { font-size:1.2rem; font-weight:700; opacity:.9; text-align:center; animation:popIn .5s .55s both; }
+  .review-header { font-weight:700; opacity:.65; align-self:flex-start; font-size:.95rem; }
+  .review-list { width:100%; display:flex; flex-direction:column; gap:9px; max-height:280px; overflow-y:auto; padding-left:4px; }
+  .review-item { background:var(--card); border-radius:12px; padding:11px 16px; display:flex; gap:12px; align-items:flex-start; border-right:4px solid transparent; font-size:.9rem; }
+  .review-item.ok { border-right-color:var(--green); }
+  .review-item.miss { border-right-color:var(--red); }
+  .review-icon { font-size:1.1rem; min-width:22px; }
+  .review-q { font-weight:700; flex:1; line-height:1.4; }
+  .review-ans { opacity:.65; font-size:.82rem; margin-top:3px; }
+  .play-again-btn {
+    background:linear-gradient(135deg,#ff6b35,#ffd700); color:#19103a; border:none;
+    padding:16px 52px; font-size:1.4rem; font-weight:900; border-radius:60px;
+    cursor:pointer; font-family:'Heebo',sans-serif; box-shadow:0 8px 30px #ffd70055;
+    transition:transform .15s; animation:popIn .5s .65s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .play-again-btn:hover { transform:scale(1.07); }
+  .confetti-piece { position:fixed; width:10px; height:10px; top:-20px; border-radius:2px; animation:confettiFall linear forwards; z-index:200; pointer-events:none; }
+  @keyframes popIn { 0%{transform:scale(.4);opacity:0} 100%{transform:scale(1);opacity:1} }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+  @keyframes slideDown { from{transform:translateY(-28px);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes slideUp { from{transform:translateY(28px);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes correctPulse { 0%{transform:scale(1)} 40%{transform:scale(1.07)} 100%{transform:scale(1)} }
+  @keyframes floatUp { 0%{transform:translateX(-50%) translateY(0);opacity:1} 100%{transform:translateX(-50%) translateY(-90px);opacity:0} }
+  @keyframes confettiFall { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
+  .review-list::-webkit-scrollbar{width:6px} .review-list::-webkit-scrollbar-track{background:#ffffff10;border-radius:10px} .review-list::-webkit-scrollbar-thumb{background:#ffffff30;border-radius:10px}
+  @media(max-width:520px){.answers-grid{grid-template-columns:1fr}.final-score-wrap{padding:28px 28px}}
+
+  /* pause button */
+  .pause-btn {
+    position:fixed; bottom:22px; left:22px; z-index:50;
+    background:#ffffff18; border:2px solid #ffffff30; color:#fff;
+    width:52px; height:52px; border-radius:50%; font-size:1.4rem;
+    cursor:pointer; display:none; align-items:center; justify-content:center;
+    backdrop-filter:blur(8px); transition:background .2s,transform .15s;
+  }
+  .pause-btn:hover { background:#ffffff30; transform:scale(1.1); }
+  .pause-btn.visible { display:flex; }
+
+  /* pause overlay */
+  .pause-overlay {
+    position:fixed; inset:0; background:#19103acc; backdrop-filter:blur(10px);
+    z-index:80; display:none; flex-direction:column;
+    align-items:center; justify-content:center; gap:20px;
+  }
+  .pause-overlay.show { display:flex; }
+  .pause-title { font-size:3rem; font-weight:900; }
+  .pause-sub { opacity:.65; font-size:1rem; }
+  .resume-btn {
+    background:linear-gradient(135deg,#ff6b35,#ffd700); color:#19103a; border:none;
+    padding:16px 52px; font-size:1.35rem; font-weight:900; border-radius:60px;
+    cursor:pointer; font-family:'Heebo',sans-serif; box-shadow:0 8px 30px #ffd70055;
+    transition:transform .15s;
+  }
+  .resume-btn:hover { transform:scale(1.07); }
+
+  /* mid-game leaderboard */
+  .mid-leaderboard {
+    position:fixed; inset:0; background:#19103aee; backdrop-filter:blur(12px);
+    z-index:90; display:none; flex-direction:column;
+    align-items:center; justify-content:center; gap:16px; padding:24px;
+  }
+  .mid-leaderboard.show { display:flex; animation:popIn .4s cubic-bezier(.34,1.3,.64,1) both; }
+  .mid-lb-title { font-size:1.8rem; font-weight:900; }
+  .mid-lb-title span { color:#ffd700; }
+  .mid-lb-list { width:100%; max-width:500px; display:flex; flex-direction:column; gap:9px; max-height:55vh; overflow-y:auto; }
+  .mid-lb-continue {
+    background:linear-gradient(135deg,#26890c,#46d3a0); color:#fff; border:none;
+    padding:14px 44px; font-size:1.2rem; font-weight:900; border-radius:60px;
+    cursor:pointer; font-family:'Heebo',sans-serif; box-shadow:0 6px 24px #46d3a055;
+    transition:transform .15s; margin-top:4px;
+  }
+  .mid-lb-continue:hover { transform:scale(1.07); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="screen active" id="intro-screen">
+    <div class="trophy-anim">🏆</div>
+    <div class="logo">טריוויה <span>ספורט</span></div>
+    <div class="sport-icons">⚽ 🏀 🎾 🥇</div>
+    <div class="subtitle">כדורגל · כדורסל · טניס · אולימפיאדה</div>
+    <button class="start-btn" onclick="startGame()">בואו נשחק! 🎯</button>
+    <div class="meta-info">15 שאלות · 30 שניות לכל שאלה</div>
+  </div>
+  <div class="screen" id="game-screen">
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+    <div class="top-bar">
+      <div class="q-counter" id="q-counter">שאלה 1 מתוך 15</div>
+      <div class="score-display">ניקוד: <span id="score-display">0</span></div>
+    </div>
+    <div class="timer-ring-container">
+      <svg viewBox="0 0 80 80" width="80" height="80">
+        <circle class="timer-ring-bg" cx="40" cy="40" r="35"/>
+        <circle class="timer-ring-fg" id="timer-ring" cx="40" cy="40" r="35"/>
+      </svg>
+      <div class="timer-number" id="timer-number">30</div>
+    </div>
+    <div class="category-badge" id="category-badge">⚽ כדורגל</div>
+    <div class="question-card" id="question-text">...</div>
+    <div class="answers-grid" id="answers-grid"></div>
+  </div>
+  <!-- מסך הכנסת שם -->
+  <div class="screen" id="name-screen">
+    <div class="trophy-anim">✍️</div>
+    <div class="logo" style="font-size:2rem">מה <span>שמך?</span></div>
+    <div class="subtitle">השם יופיע בלוח התוצאות</div>
+    <input type="text" id="player-name-input" placeholder="הכנס את שמך..." maxlength="20"
+      style="font-family:'Heebo',sans-serif;font-size:1.4rem;font-weight:700;padding:16px 28px;border-radius:60px;border:3px solid #ffd70066;background:#2a1f5a;color:#fff;text-align:center;width:100%;max-width:360px;outline:none;direction:rtl;transition:border-color .2s;"
+      onkeydown="if(event.key==='Enter')submitName()" onfocus="this.style.borderColor='#ffd700'" onblur="this.style.borderColor='#ffd70066'">
+    <button class="start-btn" onclick="submitName()">בואו נתחיל! 🚀</button>
+    <div style="display:flex;gap:10px;align-items:center;opacity:.6;font-size:.9rem;cursor:pointer;" onclick="showLeaderboard()">🏆 צפה בלוח התוצאות</div>
+  </div>
+
+  <!-- מסך תוצאות אישיות -->
+  <div class="screen" id="results-screen">
+    <div class="results-title">🎉 סיימת! <span>כל הכבוד</span></div>
+    <div class="final-score-wrap">
+      <div class="final-score-label">הניקוד הסופי שלך</div>
+      <div class="final-score-number" id="final-score">0</div>
+      <div class="final-score-out-of" id="final-correct"></div>
+      <div class="stars-row" id="stars-row"></div>
+    </div>
+    <div class="result-message" id="result-message"></div>
+    <div class="review-header">📋 סיכום השאלות:</div>
+    <div class="review-list" id="review-list"></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
+      <button class="play-again-btn" onclick="resetGame()">🔁 שחק שוב</button>
+      <button class="play-again-btn" style="background:linear-gradient(135deg,#1368ce,#46d3a0);" onclick="showLeaderboard()">🏆 לוח תוצאות</button>
+    </div>
+  </div>
+
+  <!-- מסך לוח תוצאות -->
+  <div class="screen" id="leaderboard-screen">
+    <div class="logo" style="font-size:2.2rem">🏆 לוח <span>תוצאות</span></div>
+    <div id="leaderboard-content" style="width:100%"></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <button class="play-again-btn" onclick="resetGame()">🔁 שחק שוב</button>
+      <button class="play-again-btn" style="background:linear-gradient(135deg,#e21b3c,#ff6b35);font-size:1rem;padding:12px 28px;" onclick="clearLeaderboard()">🗑️ נקה לוח</button>
+    </div>
+  </div>
+</div>
+<!-- כפתור השהייה -->
+<button class="pause-btn" id="pause-btn" onclick="togglePause()" title="השהה">⏸</button>
+
+<!-- מסך השהייה -->
+<div class="pause-overlay" id="pause-overlay">
+  <div class="pause-title">⏸ הפסקה</div>
+  <div class="pause-sub">המשחק מושהה — הטיימר לא רץ</div>
+  <button class="resume-btn" onclick="togglePause()">▶ המשך משחק</button>
+</div>
+
+<!-- מובילים אמצע משחק -->
+<div class="mid-leaderboard" id="mid-leaderboard">
+  <div class="mid-lb-title">🏆 מובילים <span>כרגע</span></div>
+  <div class="mid-lb-list" id="mid-lb-list"><div style="text-align:center;padding:20px;opacity:.5;">⏳ טוען...</div></div>
+  <button class="mid-lb-continue" onclick="closeMidLeaderboard()">▶ המשך משחק</button>
+</div>
+
+<div class="feedback-overlay" id="feedback-overlay"><div class="feedback-badge" id="feedback-badge">✅</div></div>
+<div class="points-popup" id="points-popup">+100</div>
+<script>
+const QUESTIONS = [
+  // ⚽ כדורגל
+  {
+    q: "האם שוער כדורגל רשאי להבקיע גול ישירות מבעיטת שוער?",
+    answers: ["כן, מותר לחלוטין", "לא, אסור לפי חוקי FIFA", "מותר רק בהארכות", "מותר רק אם הגיע לחצי המגרש"],
+    correct: 0,
+    cat: "⚽ כדורגל"
+  },
+  {
+    q: "מה קורה אם שוער תופס בידיו כדור שנבעט אליו בכוונה על ידי שחקן קבוצתו?",
+    answers: ["כרטיס צהוב לשוער", "פנדל ליריב", "בעיטה חופשית עקיפה ליריב", "המשחק ממשיך"],
+    correct: 2,
+    cat: "⚽ כדורגל"
+  },
+  {
+    q: "מי זכה בגביע העולם בכדורגל ב-2022 בקטאר?",
+    answers: ["ברזיל", "צרפת", "ארגנטינה", "גרמניה"],
+    correct: 2,
+    cat: "⚽ כדורגל"
+  },
+  {
+    q: "מתי שחקן נמצא במצב נבדל (אופסייד) בכדורגל?",
+    answers: ["כשהוא בחצי המגרש שלו", "כשפחות משני שחקני יריב בינו לבין קו השער ברגע המסירה", "כשהוא מאחורי השוער", "בכל עמדה קרובה לשוער"],
+    correct: 1,
+    cat: "⚽ כדורגל"
+  },
+  {
+    q: "מה שם העונש הניתן כאשר שחקן נוגע בכדור בידו בתוך רחבת העונשין?",
+    answers: ["קרנר", "פנדל", "אאוט", "כרטיס צהוב"],
+    correct: 1,
+    cat: "⚽ כדורגל"
+  },
+  // 🏀 כדורסל
+  {
+    q: "כמה נקודות שווה קליעה מעבר לקו שלוש הנקודות בכדורסל?",
+    answers: ["1", "2", "3", "4"],
+    correct: 2,
+    cat: "🏀 כדורסל"
+  },
+  {
+    q: "מה הגובה הרשמי של הסל בכדורסל?",
+    answers: ["2.85 מטר", "3.05 מטר", "3.20 מטר", "2.70 מטר"],
+    correct: 1,
+    cat: "🏀 כדורסל"
+  },
+  {
+    q: "בכדורסל, כמה צעדים מותר לשחקן לצעוד עם הכדור ללא כדרור לפני שנפסקת עבירת צעדים?",
+    answers: ["צעד אחד", "שני צעדים", "שלושה צעדים", "ארבעה צעדים"],
+    correct: 1,
+    cat: "🏀 כדורסל"
+  },
+  {
+    q: "לאיזו קבוצה ב-NBA שייך כוכב הכדורסל סטפן קארי?",
+    answers: ["Los Angeles Lakers", "Boston Celtics", "Golden State Warriors", "Chicago Bulls"],
+    correct: 2,
+    cat: "🏀 כדורסל"
+  },
+  {
+    q: "מה קורה לשחקן כדורסל שצבר 6 עבירות אישיות ב-NBA?",
+    answers: ["הוא מקבל כרטיס אדום", "הוא יוצא מהמשחק ואינו יכול לחזור", "הוא מושעה לדקה", "הקבוצה מפסידה נקודה"],
+    correct: 1,
+    cat: "🏀 כדורסל"
+  },
+  // 🎾 טניס
+  {
+    q: "ארבעת טורניירי הגרנד סלאם בטניס משחקים על ארבעה סוגי מגרש שונים — איזה מהם נכון?",
+    answers: ["וימבלדון על קשה, US Open על דשא", "רולאן גרוס על חימר, וימבלדון על דשא", "אוסטרליאן אופן על חימר, US Open על דשא", "כולם על קשה"],
+    correct: 1,
+    cat: "🎾 טניס"
+  },
+  {
+    q: "מה פירוש הניקוד דיוס (Deuce) בטניס?",
+    answers: ["40-40 שוויון", "יתרון לשחקן המגיש", "שירות כפול", "ניצחון בסט"],
+    correct: 0,
+    cat: "🎾 טניס"
+  },
+  {
+    q: "בטניס, כמה הגשות כשרות יש לשחקן בכל נקודה?",
+    answers: ["אחת", "שתיים", "שלוש", "ארבע"],
+    correct: 1,
+    cat: "🎾 טניס"
+  },
+  // 🥇 אולימפיאדה
+  {
+    q: "באיזו עיר נערכה אולימפיאדת הקיץ 2024?",
+    answers: ["לוס אנג'לס", "טוקיו", "פריז", "ברלין"],
+    correct: 2,
+    cat: "🥇 אולימפיאדה"
+  },
+  {
+    q: "מי שחקן הכדורסל שכינויו Black Mamba וזכה ב-5 אליפויות NBA?",
+    answers: ["מייקל ג'ורדן", "שאקיל אוניל", "קובי בראיינט", "לברון ג'יימס"],
+    correct: 2,
+    cat: "🏀 כדורסל"
+  }
+];
+
+const SHAPES=["▲","◆","●","■"];
+const TOTAL=QUESTIONS.length, TIME_PER_Q=30;
+const SHEET_URL='https://script.google.com/macros/s/AKfycbxL28Na9Z-g9HktOmZowFz36GHH_I6NZU9HpMI7MJWggYOqRJ9LuLbafoJFO5w0uRxH/exec';
+let currentQ=0,score=0,correctCount=0,timer=null,timeLeft=TIME_PER_Q,answered=false,reviewData=[],shuffledQuestions=[],playerName='',isPaused=false;
+const MID_LB_EVERY=1; // הצג מובילים כל שאלה
+
+// ── Google Sheets helpers ──
+async function saveScore(name,sc,correct){
+  try{
+    await fetch(SHEET_URL,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,score:sc,correct,total:TOTAL})
+    });
+  } catch(e){ console.warn('שגיאה בשמירה:',e); }
+}
+
+async function loadScores(){
+  try{
+    const res=await fetch(SHEET_URL+'?nocache='+Date.now());
+    const data=await res.json();
+    return Array.isArray(data)?data.sort((a,b)=>b.score-a.score):[];
+  } catch(e){ return []; }
+}
+
+// ── Game flow ──
+function shuffleQ(arr){
+  return arr.map(q=>{
+    const idx=[0,1,2,3];
+    for(let i=3;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    return{...q,_ans:idx.map(i=>q.answers[i]),_cor:idx.indexOf(q.correct)};
+  }).sort(()=>Math.random()-.5);
+}
+
+function startGame(){
+  showScreen('name-screen');
+  setTimeout(()=>document.getElementById('player-name-input').focus(),400);
+}
+
+function submitName(){
+  const val=document.getElementById('player-name-input').value.trim();
+  if(!val){
+    document.getElementById('player-name-input').style.borderColor='#e21b3c';
+    document.getElementById('player-name-input').placeholder='חובה להכניס שם!';
+    return;
+  }
+  playerName=val;
+  shuffledQuestions=shuffleQ(QUESTIONS);
+  currentQ=0;score=0;correctCount=0;reviewData=[];
+  showScreen('game-screen');
+  loadQuestion();
+}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function loadQuestion(){
+  answered=false;const q=shuffledQuestions[currentQ];
+  document.getElementById('progress-bar').style.width=(currentQ/TOTAL*100)+'%';
+  document.getElementById('q-counter').textContent='שאלה '+(currentQ+1)+' מתוך '+TOTAL;
+  document.getElementById('score-display').textContent=score.toLocaleString();
+  document.getElementById('category-badge').textContent=q.cat;
+  document.getElementById('question-text').textContent=q.q;
+  const grid=document.getElementById('answers-grid');grid.innerHTML='';
+  ['a','b','c','d'].forEach((cls,i)=>{
+    const btn=document.createElement('button');
+    btn.className='answer-btn '+cls;
+    btn.innerHTML='<span class="shape">'+SHAPES[i]+'</span>'+q._ans[i];
+    btn.onclick=()=>selectAnswer(i,q._cor,q.q,q._ans);
+    grid.appendChild(btn);
+  });
+  ['question-text','answers-grid'].forEach(id=>{const el=document.getElementById(id);el.style.animation='none';void el.offsetWidth;el.style.animation='';});
+  startTimer();
+}
+
+function startTimer(){
+  clearInterval(timer);timeLeft=TIME_PER_Q;isPaused=false;updateTimerUI();
+  document.getElementById('pause-btn').classList.add('visible');
+  timer=setInterval(()=>{if(!isPaused){timeLeft--;updateTimerUI();if(timeLeft<=0){clearInterval(timer);timeOut();}}},1000);
+}
+
+function togglePause(){
+  isPaused=!isPaused;
+  const btn=document.getElementById('pause-btn');
+  const overlay=document.getElementById('pause-overlay');
+  if(isPaused){
+    btn.textContent='▶';
+    overlay.classList.add('show');
+  } else {
+    btn.textContent='⏸';
+    overlay.classList.remove('show');
+  }
+}
+
+function updateTimerUI(){
+  const el=document.getElementById('timer-number'),ring=document.getElementById('timer-ring');
+  el.textContent=timeLeft;
+  ring.style.strokeDashoffset=220*(1-timeLeft/TIME_PER_Q);
+  if(timeLeft<=5){el.style.color='#ff6b35';ring.style.stroke='#ff6b35';}
+  else if(timeLeft<=10){el.style.color='#ffd700';ring.style.stroke='#ffd700';}
+  else{el.style.color='var(--timer-color)';ring.style.stroke='var(--timer-color)';}
+}
+
+function selectAnswer(chosen,correct,qText,answers){
+  if(answered)return;answered=true;clearInterval(timer);
+  const btns=document.querySelectorAll('.answer-btn');btns.forEach(b=>b.disabled=true);
+  const ok=chosen===correct;
+  if(ok){
+    btns[chosen].classList.add('correct');
+    const pts=Math.max(500,Math.round(500+(timeLeft/TIME_PER_Q)*500));
+    score+=pts;correctCount++;showFeedback('✅');showPoints('+'+pts);
+    reviewData.push({q:qText,ok:true,ans:'✅ '+answers[correct]});
+  } else {
+    btns[chosen].classList.add('wrong');btns[correct].classList.add('reveal-correct');
+    showFeedback('❌');
+    reviewData.push({q:qText,ok:false,ans:'❌ בחרת: '+answers[chosen]+' · נכון: '+answers[correct]});
+  }
+  document.getElementById('score-display').textContent=score.toLocaleString();
+  setTimeout(()=>{
+    hideFeedback();
+    currentQ++;
+    if(currentQ>=TOTAL){ showResults(); }
+    else { showMidLeaderboard(); }
+  },1800);
+}
+
+function timeOut(){
+  if(answered)return;answered=true;
+  const q=shuffledQuestions[currentQ];
+  const btns=document.querySelectorAll('.answer-btn');btns.forEach(b=>b.disabled=true);
+  btns[q._cor].classList.add('reveal-correct');showFeedback('⏰');
+  reviewData.push({q:q.q,ok:false,ans:'⏰ פג הזמן · נכון: '+q._ans[q._cor]});
+  setTimeout(()=>{
+    hideFeedback();
+    currentQ++;
+    if(currentQ>=TOTAL){ showResults(); }
+    else { showMidLeaderboard(); }
+  },1800);
+}
+
+function showFeedback(e){document.getElementById('feedback-badge').textContent=e;document.getElementById('feedback-overlay').classList.add('show');}
+function hideFeedback(){document.getElementById('feedback-overlay').classList.remove('show');}
+function showPoints(t){const el=document.getElementById('points-popup');el.textContent=t;el.classList.remove('show');void el.offsetWidth;el.classList.add('show');}
+
+
+// ── Mid-game leaderboard ──
+async function showMidLeaderboard(){
+  clearInterval(timer);
+  document.getElementById('pause-btn').classList.remove('visible');
+  const el=document.getElementById('mid-leaderboard');
+  el.classList.add('show');
+  const list=document.getElementById('mid-lb-list');
+  list.innerHTML='<div style="text-align:center;padding:20px;opacity:.5;">⏳ טוען...</div>';
+  const scores=await loadScores();
+  const medals=['🥇','🥈','🥉'];
+  if(!scores.length){
+    list.innerHTML='<div style="text-align:center;padding:20px;opacity:.5;">עדיין אין נתונים</div>';
+    return;
+  }
+  const myRank=scores.findIndex(s=>s.name===playerName)+1;
+  let innerHtml='';
+  scores.slice(0,10).forEach((s,i)=>{
+    const isMe=s.name===playerName;
+    innerHtml+=`<div style="
+      background:${isMe?'linear-gradient(135deg,#ffd70033,#ff6b3522)':'#2a1f5a'};
+      border:2px solid ${isMe?'#ffd700':'transparent'};
+      border-radius:12px;padding:12px 18px;
+      display:flex;align-items:center;gap:12px;
+      animation:slideUp .3s ${i*.04}s both;
+    ">
+      <div style="font-size:1.4rem;min-width:32px;text-align:center;">${medals[i]||'<span style="font-size:.9rem;opacity:.6;">#'+(i+1)+'</span>'}</div>
+      <div style="flex:1;font-weight:700;${isMe?'color:#ffd700':''}">${s.name}${isMe?' 👈':''}</div>
+      <div style="font-weight:900;color:#ffd700;">${Number(s.score).toLocaleString()}</div>
+    </div>`;
+  });
+  if(myRank>10) innerHtml+=`<div style="text-align:center;opacity:.6;font-size:.85rem;padding:8px;">הדירוג שלך: מקום ${myRank}</div>`;
+  list.innerHTML=innerHtml;
+}
+
+function closeMidLeaderboard(){
+  document.getElementById('mid-leaderboard').classList.remove('show');
+  document.getElementById('pause-btn').classList.add('visible');
+  loadQuestion();
+}
+
+async function showResults(){
+  document.getElementById('pause-btn').classList.remove('visible');
+  await saveScore(playerName,score,correctCount);
+  showScreen('results-screen');
+  document.getElementById('final-score').textContent=score.toLocaleString();
+  document.getElementById('final-correct').textContent=correctCount+' מתוך '+TOTAL+' תשובות נכונות';
+  const r=correctCount/TOTAL;let stars,msg;
+  if(r>=.93){stars='⭐⭐⭐⭐⭐';msg='🏆 תוצאה מושלמת! אלוף ספורט אמיתי!';}
+  else if(r>=.7){stars='⭐⭐⭐⭐';msg='🎉 מצוין! כמעט מושלם!';}
+  else if(r>=.5){stars='⭐⭐⭐';msg='👏 יפה מאוד! עוד קצת ותגיע לפסגה!';}
+  else if(r>=.3){stars='⭐⭐';msg='💪 כדאי לתרגל — אתה בדרך הנכונה!';}
+  else{stars='⭐';msg='📚 קדימה לתרגל ולנסות שוב!';}
+  document.getElementById('stars-row').textContent=stars;
+  document.getElementById('result-message').textContent=msg;
+  const list=document.getElementById('review-list');list.innerHTML='';
+  reviewData.forEach((item,i)=>{
+    const d=document.createElement('div');d.className='review-item '+(item.ok?'ok':'miss');
+    d.style.animationDelay=(i*.04)+'s';
+    d.innerHTML='<div class="review-icon">'+(item.ok?'✅':'❌')+'</div><div><div class="review-q">'+item.q+'</div><div class="review-ans">'+item.ans+'</div></div>';
+    list.appendChild(d);
+  });
+  if(r>=.6)launchConfetti();
+}
+
+// ── Leaderboard ──
+function showLeaderboard(){
+  showScreen('leaderboard-screen');
+  renderLeaderboard();
+}
+
+async function renderLeaderboard(){
+  const container=document.getElementById('leaderboard-content');
+  container.innerHTML='<div style="text-align:center;padding:40px;font-size:1.1rem;opacity:.6;">⏳ טוען תוצאות...</div>';
+  const scores=await loadScores();
+  const medals=['🥇','🥈','🥉'];
+
+  if(!scores.length){
+    container.innerHTML='<div style="text-align:center;opacity:.5;padding:40px;font-size:1.1rem;">עדיין אין משתתפים 🤷</div>';
+    return;
+  }
+
+  const myRank=scores.findIndex(s=>s.name===playerName)+1;
+  let html='<div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-bottom:16px;max-height:400px;overflow-y:auto;">';
+  scores.forEach((s,i)=>{
+    const isMe=s.name===playerName;
+    const rank=i+1;
+    const pct=Math.round((s.correct/s.total||s.correct/TOTAL)*100);
+    html+=`
+      <div style="
+        background:${isMe?'linear-gradient(135deg,#ffd70033,#ff6b3522)':'var(--card)'};
+        border:2px solid ${isMe?'#ffd700':'transparent'};
+        border-radius:14px;padding:14px 20px;
+        display:flex;align-items:center;gap:14px;
+        animation:slideUp .3s ${i*.05}s both;
+      ">
+        <div style="font-size:1.6rem;min-width:36px;text-align:center;">${medals[i]||'<span style="font-size:1rem;opacity:.6;">#'+rank+'</span>'}</div>
+        <div style="flex:1;">
+          <div style="font-weight:900;font-size:1.05rem;${isMe?'color:#ffd700':''}">${s.name}${isMe?' 👈':''}</div>
+          <div style="font-size:.8rem;opacity:.6;margin-top:2px;">${s.correct}/${s.total||TOTAL} נכון · ${pct}%</div>
+        </div>
+        <div style="font-size:1.4rem;font-weight:900;color:#ffd700;">${Number(s.score).toLocaleString()}</div>
+      </div>`;
+  });
+  html+='</div>';
+  if(myRank>0){
+    html+=`<div style="text-align:center;opacity:.65;font-size:.9rem;margin-bottom:8px;">הדירוג שלך: מקום ${myRank} מתוך ${scores.length} משתתפים</div>`;
+  }
+  container.innerHTML=html;
+}
+
+function clearLeaderboard(){
+  alert('למחיקת כל התוצאות — פשוט מחק את השורות בגיליון Google Sheets שלך.');
+}
+
+function launchConfetti(){
+  const cols=['#ffd700','#ff6b35','#e21b3c','#1368ce','#26890c','#ffffff'];
+  for(let i=0;i<80;i++){
+    const c=document.createElement('div');c.className='confetti-piece';
+    c.style.left=Math.random()*100+'vw';c.style.background=cols[Math.floor(Math.random()*cols.length)];
+    c.style.animationDuration=(2+Math.random()*3)+'s';c.style.animationDelay=(Math.random()*2)+'s';
+    c.style.width=(6+Math.random()*8)+'px';c.style.height=(6+Math.random()*8)+'px';
+    document.body.appendChild(c);setTimeout(()=>c.remove(),6000);
+  }
+}
+
+function resetGame(){ showScreen('intro-screen'); }
+</script>
+</body>
+</html>
