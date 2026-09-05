@@ -327,11 +327,11 @@ function viewActivity() {
   html += `<div class="card">
     <div class="card-h"><h3>🔥 מאזן אנרגיה</h3></div>
     <div class="energy">
-      <div class="ecell in"><b class="num">${r0(totals().kcal)}</b><small>נאכלו</small></div>
+      <div class="ecell in"><b class="num" dir="ltr">${r0(totals().kcal)}</b><small>נאכלו</small></div>
       <div class="eop">−</div>
-      <div class="ecell out"><b class="num">${burn}</b><small>נשרפו</small></div>
+      <div class="ecell out"><b class="num" dir="ltr">${burn}</b><small>נשרפו</small></div>
       <div class="eop">=</div>
-      <div class="ecell net"><b class="num">${r0(totals().kcal - burn)}</b><small>נטו</small></div>
+      <div class="ecell net"><b class="num" dir="ltr">${r0(totals().kcal - burn)}</b><small>נטו</small></div>
     </div>
     <div class="row">
       <div><div class="rl">להוסיף קלוריות שנשרפו ליעד</div>
@@ -374,39 +374,63 @@ function viewActivity() {
   </div>`;
 
   /* חיבור לאפליקציית הבריאות */
-  html += `<div class="sec-title">⌚ חיבור לאפליקציית הבריאות ולשעון</div>
-  <div class="card">
-    <div class="banner info">ℹ️ אפל לא מאפשרת לאפליקציית ווב לקרוא ישירות מאפליקציית "בריאות". שתי הדרכים כאן הן הדרכים החוקיות והיציבות לעשות את זה.</div>
-    <details class="acc" style="box-shadow:none;border:1px solid var(--line)"><summary>⚡ דרך 1 — קיצור דרך יומי (מומלץ)</summary>
-      <div class="accb">
-        <p>קיצור דרך שרץ אוטומטית כל ערב, קורא את הצעדים מאפליקציית הבריאות ומעביר אותם לכאן. פעם אחת מגדירים, ואחר כך זה עובד לבד — גם מהשעון.</p>
-        <ol class="steps">
-          <li>לפתוח את אפליקציית <b>קיצורי דרך</b> ← <b>אוטומציה</b> ← <b>+</b></li>
-          <li>לבחור <b>שעה ביום</b>, להגדיר 22:00, ו<b>הפעל מיד</b></li>
-          <li>להוסיף פעולה <b>קבל דגימות בריאות</b> — סוג: <b>צעדים</b>, טווח: <b>היום</b></li>
-          <li>להוסיף <b>חשב סטטיסטיקה</b> ← <b>סכום</b></li>
-          <li>להוסיף <b>פתח כתובת</b> ולהדביק את הכתובת הזאת, כשבמקום הסוגריים מכניסים את תוצאת הסכום:</li>
-        </ol>
-        <div class="codebox"><code id="sc-url">${esc(location.origin + location.pathname)}?steps=[הסכום]</code>
-          <button class="btn sm soft" id="copy-url">העתקה</button></div>
-        <p style="margin-top:12px">אפשר להוסיף באותה שורה גם <bdi>&kcal=</bdi> לקלוריות שנשרפו ו-<bdi>&weight=</bdi> למשקל.</p>
-      </div></details>
-    <details class="acc" style="box-shadow:none;border:1px solid var(--line)"><summary>📥 דרך 2 — ייבוא היסטוריה מלאה</summary>
-      <div class="accb">
-        <p>מייבא את כל ההיסטוריה בבת אחת — צעדים, קלוריות ומשקל מכל השנים.</p>
-        <ol class="steps">
-          <li>באפליקציית <b>בריאות</b> ← ללחוץ על תמונת הפרופיל ← <b>ייצוא כל הנתונים</b></li>
-          <li>לשמור את הקובץ, לפתוח אותו באפליקציית <b>קבצים</b> ולחלץ את ה-zip</li>
-          <li>לבחור כאן את הקובץ <bdi>export.xml</bdi> מתוך התיקייה</li>
-        </ol>
-        <button class="btn soft block" id="import-health" style="margin-top:10px">בחירת קובץ export.xml</button>
-      </div></details>
-    <details class="acc" style="box-shadow:none;border:1px solid var(--line)"><summary>⌚ מה עם האפל ווטש?</summary>
-      <div class="accb">
-        <p>ההתראות והתזכורות של האפליקציה מופיעות אוטומטית גם בשעון, כי השעון מציג את ההתראות של האייפון. אפשר גם להפעיל את קיצור הדרך מהשעון עצמו.</p>
-        <p>לחיישני השעון — דופק, טבעות פעילות, אימונים — אין גישה ישירה מדפדפן. הם מגיעים לכאן דרך אפליקציית הבריאות, בשתי הדרכים שלמעלה, כי השעון מסנכרן אליה הכול.</p>
-      </div></details>
-  </div>`;
+  html += `<div class="sec-title">⌚ צעדים מאפליקציית הבריאות</div>
+
+  <div class="card once">
+    <div class="once-head"><span class="once-i">✨</span>
+      <div><b>הגדרה חד-פעמית</b>
+        <p>כ-3 דקות עכשיו, ומאותו רגע הצעדים נכנסים לכאן <u>לבד</u> כל ערב — מהאייפון ומהשעון. לא צריך לגעת בזה שוב.</p></div>
+    </div>
+
+    <div class="why">למה בכלל צריך את זה? אפל לא מאפשרת לאפליקציית ווב לקרוא ישירות מאפליקציית "בריאות". קיצור הדרך הוא הגשר הרשמי שעוקף את זה.</div>
+
+    <ol class="bigsteps">
+      <li><b>פותחים את אפליקציית "קיצורי דרך"</b>
+        <span>היא מותקנת מראש בכל אייפון. אם לא מוצאים — לגרור מטה במסך הבית ולחפש "קיצורי דרך".</span></li>
+
+      <li><b>לשונית "אוטומציה" בתחתית ← כפתור +</b>
+        <span>אם זו האוטומציה הראשונה, יופיע ישר מסך יצירה.</span></li>
+
+      <li><b>לבחור "שעה ביום"</b>
+        <span>להגדיר שעה שבה הטלפון בדרך כלל פנוי — 22:00 עובד טוב. לוודא שמסומן "הפעל מיד" ולא "שאל לפני הפעלה".</span></li>
+
+      <li><b>להוסיף פעולה שמביאה את הצעדים</b>
+        <span>בתיבת החיפוש להקליד <b>בריאות</b> ולבחור את הפעולה שמוצאת דגימות בריאות. להגדיר: סוג = <b>צעדים</b>, טווח = <b>היום</b>.</span></li>
+
+      <li><b>להוסיף פעולה שמסכמת</b>
+        <span>לחפש <b>סטטיסטיקה</b> ולבחור חישוב סטטיסטיקה. להגדיר: <b>סכום</b>.</span></li>
+
+      <li><b>להוסיף "פתח כתובת" ולהדביק את זה:</b>
+        <span>אחרי ה-<bdi>=</bdi> צריך לגרור פנימה את תוצאת הסכום מהשלב הקודם.</span>
+        <div class="codebox"><code id="sc-url">${esc(location.origin + location.pathname)}?steps=</code>
+          <button class="btn sm primary" id="copy-url">העתקה</button></div></li>
+
+      <li><b>לשמור. זהו.</b>
+        <span>בפעם הראשונה שזה ירוץ, האייפון יבקש אישור גישה לנתוני הבריאות — מאשרים פעם אחת וזה נגמר.</span></li>
+    </ol>
+
+    <div class="tipbox">💡 שמות הפעולות משתנים קצת בין גרסאות iOS. אם משהו לא נראה בדיוק ככה — לחפש בתיבת החיפוש את המילים <b>בריאות</b> ו<b>סטטיסטיקה</b>, הן תמיד שם.</div>
+  </div>
+
+  <details class="acc"><summary>🖐️ מעדיפים בלחיצה במקום אוטומטי?</summary>
+    <div class="accb">אפשר לבנות את אותו קיצור דרך בלשונית "קיצורי הדרך שלי" במקום ב"אוטומציה", ואז להוסיף אותו כאייקון למסך הבית. לחיצה אחת מעדכנת את הצעדים, בלי שהאפליקציה תיפתח מעצמה בערב.</div></details>
+
+  <details class="acc"><summary>📥 לייבא את כל ההיסטוריה בבת אחת</summary>
+    <div class="accb">
+      <p>מייבא צעדים, קלוריות ומשקל מכל השנים — פעולה חד-פעמית שממלאת את הגרפים למפרע.</p>
+      <ol class="steps">
+        <li>אפליקציית <b>בריאות</b> ← תמונת הפרופיל ← <b>ייצוא כל הנתונים</b></li>
+        <li>לשמור, לפתוח באפליקציית <b>קבצים</b> ולחלץ את קובץ ה-zip</li>
+        <li>לבחור כאן את הקובץ <bdi>export.xml</bdi></li>
+      </ol>
+      <button class="btn soft block" id="import-health" style="margin-top:10px">בחירת קובץ export.xml</button>
+    </div></details>
+
+  <details class="acc"><summary>⌚ ומה עם האפל ווטש?</summary>
+    <div class="accb">
+      <p>התזכורות של האפליקציה מופיעות בשעון אוטומטית, כי השעון מציג את ההתראות של האייפון.</p>
+      <p>הצעדים שהשעון סופר נכנסים גם הם — הוא מסנכרן הכול לאפליקציית "בריאות", ומשם קיצור הדרך לוקח אותם. אין צורך בהגדרה נפרדת לשעון.</p>
+    </div></details>`;
 
   html += `<div class="card"><div class="card-h"><h3>🎯 יעד הצעדים</h3></div>
     <div class="chips" id="goal-chips">

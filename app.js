@@ -387,8 +387,8 @@ function viewToday() {
   {
     const steps = d.steps || 0, sg = stepGoal();
     const walks = (d.walks || []).length;
-    html += `<button class="card tap" data-tab="activity" style="width:100%;text-align:start">
-      <div class="card-h"><h3>👣 תנועה</h3><span class="link">פתיחה ›</span></div>
+    html += `<div class="card">
+      <div class="card-h"><h3>👣 תנועה</h3><button class="link" data-tab="activity">פתיחה ›</button></div>
       <div class="macro"><span class="mk">צעדים</span>
         <span class="mbar"><i style="width:${clamp(steps / sg, 0, 1) * 100}%;background:var(--primary)"></i></span>
         <span class="mv"><bdi>${steps.toLocaleString('he-IL')} / ${sg.toLocaleString('he-IL')}</bdi></span></div>
@@ -396,7 +396,11 @@ function viewToday() {
         <span class="pill b">🔥 <bdi>${burned}</bdi> קלוריות נשרפו</span>
         <span class="pill p">📏 <bdi>${(steps * strideM() / 1000).toFixed(1)}</bdi> ק"מ</span>
         ${walks ? `<span class="pill w">🛰️ <bdi>${walks}</bdi> מסלולים</span>` : ''}
-      </div></button>`;
+      </div>
+      <div class="quickrow">
+        <button class="btn sm soft" id="edit-steps">✏️ עדכון צעדים</button>
+        <button class="btn sm ghost" data-tab="activity">🛰️ הליכה עם GPS</button>
+      </div></div>`;
   }
 
   /* סוכר ונתרן */
