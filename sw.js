@@ -1,4 +1,4 @@
-const CACHE = 'tzuna-v2';
+const CACHE = 'tzuna-v3';
 const ASSETS = [
   './', './index.html', './styles.css', './app.js', './activity.js', './builder.js',
   './manifest.webmanifest',
