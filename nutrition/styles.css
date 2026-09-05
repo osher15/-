@@ -1,0 +1,310 @@
+/* ═══════════ תזונה שלי — עיצוב ═══════════ */
+:root{
+  --bg:#f4f7f5; --surface:#ffffff; --surface-2:#eef3f0; --line:#dfe8e3;
+  --ink:#12211c; --muted:#667871;
+  --primary:#0d9e79; --primary-soft:#e2f5ee; --primary-ink:#07634b;
+  --accent:#ff7a59; --accent-soft:#ffeee9;
+  --warn:#e0930f; --warn-soft:#fdf2dc;
+  --danger:#dc3d43; --danger-soft:#fdeaea;
+  --blue:#3b7de0; --blue-soft:#e7f0fd;
+  --purple:#8b5cf6; --purple-soft:#f1eafe;
+  --shadow:0 1px 2px rgba(16,40,32,.05), 0 8px 24px -12px rgba(16,40,32,.18);
+  --shadow-lg:0 8px 40px -12px rgba(16,40,32,.28);
+  --r:20px; --r-sm:14px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#0e1614; --surface:#17231f; --surface-2:#1f2e29; --line:#2a3b35;
+  --ink:#e9f2ee; --muted:#94a8a1;
+  --primary:#28c39a; --primary-soft:#123a30; --primary-ink:#7ee6c6;
+  --accent:#ff8f72; --accent-soft:#3a231d;
+  --warn:#e8ab35; --warn-soft:#3a2e14;
+  --danger:#f2686d; --danger-soft:#3a1d1e;
+  --blue:#6ba1f0; --blue-soft:#17263d;
+  --purple:#a687f8; --purple-soft:#251a3d;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+  --shadow-lg:0 8px 40px -12px rgba(0,0,0,.7);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0e1614; --surface:#17231f; --surface-2:#1f2e29; --line:#2a3b35;
+  --ink:#e9f2ee; --muted:#94a8a1;
+  --primary:#28c39a; --primary-soft:#123a30; --primary-ink:#7ee6c6;
+  --accent:#ff8f72; --accent-soft:#3a231d;
+  --warn:#e8ab35; --warn-soft:#3a2e14;
+  --danger:#f2686d; --danger-soft:#3a1d1e;
+  --blue:#6ba1f0; --blue-soft:#17263d;
+  --purple:#a687f8; --purple-soft:#251a3d;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+  --shadow-lg:0 8px 40px -12px rgba(0,0,0,.7);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Noto Sans Hebrew',-apple-system,BlinkMacSystemFont,'SF Hebrew','Arial Hebrew','Segoe UI',Arial,sans-serif;
+  font-size:16px; line-height:1.5; direction:rtl;
+  -webkit-font-smoothing:antialiased; overscroll-behavior-y:none;
+}
+button,input,select,textarea{font:inherit; color:inherit}
+button{cursor:pointer; border:0; background:none}
+h1,h2,h3,h4{margin:0; font-weight:700; letter-spacing:-.01em}
+[hidden]{display:none !important}
+bdi{unicode-bidi:isolate}
+.num{unicode-bidi:isolate; font-variant-numeric:tabular-nums}
+
+/* ───── כפתורים ───── */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:48px; padding:0 20px; border-radius:14px; font-weight:600;
+  transition:transform .12s ease, opacity .15s ease;
+}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--primary); color:#fff}
+.btn.ghost{background:var(--surface-2); color:var(--ink)}
+.btn.soft{background:var(--primary-soft); color:var(--primary-ink)}
+.btn.danger{background:var(--danger-soft); color:var(--danger)}
+.btn.block{width:100%}
+.btn.sm{min-height:38px; padding:0 14px; font-size:14px; border-radius:11px}
+.btn:disabled{opacity:.45; pointer-events:none}
+
+/* ───── שדות ───── */
+.fld{display:block; margin-bottom:16px}
+.fld>span{display:block; font-size:14px; font-weight:600; color:var(--muted); margin-bottom:7px}
+.fld-note{font-size:14px; color:var(--muted); margin:0 0 14px}
+input[type=text],input[type=number],input[type=time],input[type=date],select,textarea{
+  width:100%; min-height:50px; padding:0 15px; border-radius:14px;
+  border:1.5px solid var(--line); background:var(--surface); color:var(--ink);
+  text-align:right; direction:rtl; appearance:none; outline:none;
+}
+textarea{padding:12px 15px; min-height:80px; line-height:1.5; resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--primary)}
+input[type=number]{direction:ltr; text-align:right}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:14px 22px,19px 22px; background-size:5px 5px,5px 5px; background-repeat:no-repeat; padding-inline-start:34px}
+
+.seg{display:flex; gap:8px; background:var(--surface-2); padding:5px; border-radius:15px}
+.seg.vert{flex-direction:column}
+.seg button{flex:1; min-height:42px; border-radius:11px; font-weight:600; font-size:15px; color:var(--muted)}
+.seg button.on{background:var(--surface); color:var(--primary); box-shadow:var(--shadow)}
+.chips{display:flex; flex-wrap:wrap; gap:9px}
+.chips button{
+  padding:10px 15px; border-radius:999px; background:var(--surface-2);
+  border:1.5px solid transparent; font-size:14.5px; font-weight:600; color:var(--muted);
+}
+.chips button.on{background:var(--primary-soft); border-color:var(--primary); color:var(--primary-ink)}
+
+/* ───── מסך פתיחה ───── */
+.onboard{position:fixed; inset:0; background:var(--bg); overflow-y:auto; padding:calc(var(--safe-t) + 24px) 18px calc(var(--safe-b) + 24px); z-index:50}
+.ob-card{max-width:480px; margin:0 auto; background:var(--surface); border-radius:26px; padding:26px 22px; box-shadow:var(--shadow-lg)}
+.ob-head{text-align:center; margin-bottom:26px}
+.ob-logo{font-size:52px; line-height:1}
+.ob-head h1{font-size:27px; margin:10px 0 6px}
+.ob-sub{margin:0; color:var(--muted); font-size:15px}
+.ob-nav{display:flex; align-items:center; gap:12px; margin-top:24px}
+.ob-nav .btn{flex:1}
+.ob-dots{display:flex; gap:6px}
+.ob-dots i{width:7px; height:7px; border-radius:50%; background:var(--line)}
+.ob-dots i.on{background:var(--primary); width:20px; border-radius:4px}
+.ob-preview{margin-top:18px; background:var(--primary-soft); border-radius:var(--r-sm); padding:16px; font-size:14.5px; color:var(--primary-ink)}
+.ob-preview b{font-size:19px}
+
+/* ───── שלד האפליקציה ───── */
+.topbar{
+  position:sticky; top:0; z-index:20; display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+  padding:calc(var(--safe-t) + 14px) 18px 12px;
+  background:color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter:saturate(180%) blur(16px); -webkit-backdrop-filter:saturate(180%) blur(16px);
+  border-bottom:1px solid var(--line);
+}
+.tb-title{font-size:24px; font-weight:800; letter-spacing:-.02em}
+.tb-sub{font-size:13.5px; color:var(--muted)}
+.tb-btn{
+  display:grid; place-items:center; width:42px; height:42px; border-radius:50%;
+  background:var(--primary-soft); color:var(--primary-ink); font-weight:800; font-size:15px; flex:0 0 auto;
+}
+.view{padding:16px 16px calc(84px + var(--safe-b)); max-width:640px; margin:0 auto}
+
+.tabs{
+  position:fixed; inset-inline:0; bottom:0; z-index:30; display:flex;
+  padding:6px 6px calc(6px + var(--safe-b));
+  background:color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter:saturate(180%) blur(18px); -webkit-backdrop-filter:saturate(180%) blur(18px);
+  border-top:1px solid var(--line);
+}
+.tab{flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 2px; border-radius:13px; font-size:11px; font-weight:600; color:var(--muted)}
+.tab span{font-size:22px; line-height:1.15; transition:transform .15s ease}
+.tab.on{color:var(--primary)}
+.tab.on span{transform:translateY(-2px) scale(1.1)}
+
+/* ───── כרטיסים ───── */
+.card{background:var(--surface); border-radius:var(--r); padding:18px; box-shadow:var(--shadow); margin-bottom:14px}
+.card.flat{box-shadow:none; border:1px solid var(--line)}
+.card-h{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px}
+.card-h h3{font-size:17px}
+.card-h .link{font-size:14px; font-weight:600; color:var(--primary)}
+.sec-title{font-size:13px; font-weight:700; color:var(--muted); margin:22px 4px 10px; letter-spacing:.02em}
+
+/* ───── טבעת קלוריות ───── */
+.ring-wrap{display:flex; align-items:center; gap:18px}
+.ring{position:relative; flex:0 0 auto; width:132px; height:132px}
+.ring svg{transform:rotate(-90deg) scaleX(-1); display:block}
+.ring-c{fill:none; stroke-linecap:round}
+.ring-txt{position:absolute; inset:0; display:grid; place-content:center; text-align:center}
+.ring-txt b{display:block; font-size:30px; font-weight:800; line-height:1.05; font-variant-numeric:tabular-nums}
+.ring-txt small{font-size:12px; color:var(--muted)}
+.ring-side{flex:1; min-width:0; display:flex; flex-direction:column; gap:11px}
+
+/* ───── מדי מאקרו ───── */
+.macro{display:flex; align-items:center; gap:10px; font-size:13.5px}
+.macro .mk{flex:0 0 62px; color:var(--muted); font-weight:600}
+.macro .mbar{flex:1; height:9px; border-radius:99px; background:var(--surface-2); overflow:hidden}
+.macro .mbar i{display:block; height:100%; border-radius:99px; transition:width .5s cubic-bezier(.3,1,.5,1)}
+.macro .mv{flex:0 0 auto; font-variant-numeric:tabular-nums; font-weight:600; font-size:12.5px; color:var(--muted)}
+
+/* ───── מים ───── */
+.water{display:flex; gap:6px; flex-wrap:wrap; margin:12px 0}
+.water i{width:23px; height:31px; border-radius:6px 6px 11px 11px; background:var(--surface-2); display:grid; place-items:center; font-size:15px; opacity:.4; transition:.2s}
+.water i.on{background:var(--blue-soft); opacity:1}
+.water-btns{display:flex; gap:8px}
+
+/* ───── רשימת ארוחות ───── */
+.meal{background:var(--surface); border-radius:var(--r); box-shadow:var(--shadow); margin-bottom:12px; overflow:hidden}
+.meal-h{display:flex; align-items:center; gap:11px; padding:14px 16px; width:100%; text-align:start}
+.meal-h .mi{font-size:22px}
+.meal-h .mn{flex:1; font-weight:700; font-size:16px}
+.meal-h .mc{font-size:13.5px; color:var(--muted); font-variant-numeric:tabular-nums}
+.meal-h .madd{width:32px; height:32px; border-radius:50%; background:var(--primary-soft); color:var(--primary-ink); display:grid; place-items:center; font-size:19px; font-weight:700}
+.entry{display:flex; align-items:center; gap:11px; padding:11px 16px; border-top:1px solid var(--line)}
+.entry .ee{font-size:20px; flex:0 0 auto}
+.entry .et{flex:1; min-width:0}
+.entry .et b{display:block; font-size:14.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.entry .et small{color:var(--muted); font-size:12.5px}
+.entry .ek{font-variant-numeric:tabular-nums; font-weight:700; font-size:14px; flex:0 0 auto}
+.entry .ex{width:30px; height:30px; border-radius:50%; display:grid; place-items:center; color:var(--muted); font-size:17px; flex:0 0 auto}
+
+/* ───── חיפוש ופריטים ───── */
+.searchbar{position:relative; margin-bottom:12px}
+.searchbar input{padding-inline-start:44px; min-height:52px}
+.searchbar .si{position:absolute; inset-inline-start:15px; top:50%; transform:translateY(-50%); font-size:18px; opacity:.5; pointer-events:none}
+.catrow{display:flex; gap:8px; overflow-x:auto; padding:2px 0 10px; margin-inline:-16px; padding-inline:16px; scrollbar-width:none}
+.catrow::-webkit-scrollbar{display:none}
+.catrow button{flex:0 0 auto; padding:9px 14px; border-radius:999px; background:var(--surface); box-shadow:var(--shadow); font-size:14px; font-weight:600; white-space:nowrap}
+.catrow button.on{background:var(--primary); color:#fff}
+.flist{display:flex; flex-direction:column; gap:8px}
+.fitem{display:flex; align-items:center; gap:12px; width:100%; text-align:start; background:var(--surface); border-radius:var(--r-sm); padding:12px 14px; box-shadow:var(--shadow); transition:transform .1s}
+.fitem:active{transform:scale(.985)}
+.fitem .fe{font-size:24px; flex:0 0 auto}
+.fitem .ft{flex:1; min-width:0}
+.fitem .ft b{display:block; font-size:15px; font-weight:600}
+.fitem .ft small{color:var(--muted); font-size:12.5px}
+.fitem .fk{text-align:center; flex:0 0 auto}
+.fitem .fk b{display:block; font-size:16px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--primary)}
+.fitem .fk small{font-size:10.5px; color:var(--muted)}
+.empty{text-align:center; padding:44px 20px; color:var(--muted)}
+.empty .ei{font-size:46px; margin-bottom:10px}
+
+/* ───── חלונית תחתונה ───── */
+.sheet{position:fixed; inset:0; z-index:60; display:flex; align-items:flex-end; justify-content:center}
+.sheet-back{position:absolute; inset:0; background:rgba(8,20,16,.45); animation:fade .2s ease}
+.sheet-card{
+  position:relative; width:100%; max-width:560px; max-height:90vh; overflow-y:auto;
+  background:var(--surface); border-radius:26px 26px 0 0;
+  padding:8px 18px calc(24px + var(--safe-b)); box-shadow:var(--shadow-lg);
+  animation:up .28s cubic-bezier(.2,.9,.3,1); -webkit-overflow-scrolling:touch;
+}
+.sheet-grab{display:block; width:42px; height:5px; border-radius:99px; background:var(--line); margin:8px auto 16px}
+.sheet-h{display:flex; align-items:center; gap:12px; margin-bottom:18px}
+.sheet-h .she{font-size:34px}
+.sheet-h h3{font-size:19px}
+.sheet-h small{color:var(--muted); font-size:13px}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+.qty{display:flex; align-items:center; gap:12px; background:var(--surface-2); border-radius:15px; padding:7px}
+.qty button{width:44px; height:44px; border-radius:12px; background:var(--surface); font-size:22px; font-weight:700; box-shadow:var(--shadow)}
+.qty input{flex:1; text-align:center; border:0; background:transparent; min-height:44px; font-size:19px; font-weight:700; direction:ltr}
+.nutgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:16px 0}
+.nutgrid div{background:var(--surface-2); border-radius:13px; padding:11px 5px; text-align:center}
+.nutgrid b{display:block; font-size:16px; font-weight:800; font-variant-numeric:tabular-nums}
+.nutgrid small{font-size:10.5px; color:var(--muted)}
+
+/* ───── התקדמות ───── */
+.stats{display:grid; grid-template-columns:repeat(2,1fr); gap:11px; margin-bottom:14px}
+.stat{background:var(--surface); border-radius:var(--r-sm); padding:15px; box-shadow:var(--shadow)}
+.stat b{display:block; font-size:25px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1.15}
+.stat small{color:var(--muted); font-size:12.5px}
+.lvlbar{height:11px; border-radius:99px; background:var(--surface-2); overflow:hidden; margin:10px 0 6px}
+.lvlbar i{display:block; height:100%; background:linear-gradient(90deg,var(--primary),var(--accent)); border-radius:99px; transition:width .6s cubic-bezier(.3,1,.5,1)}
+.badges{display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:10px}
+.badge{text-align:center; padding:13px 6px; border-radius:15px; background:var(--surface-2); opacity:.4}
+.badge.on{opacity:1; background:var(--primary-soft)}
+.badge i{display:block; font-size:27px; font-style:normal; line-height:1.2}
+.badge b{display:block; font-size:11.5px; font-weight:700; margin-top:5px}
+
+/* ───── טיפים והמלצות ───── */
+.tip{display:flex; gap:13px; background:linear-gradient(135deg,var(--primary-soft),var(--accent-soft)); border-radius:var(--r); padding:17px; margin-bottom:14px}
+.tip .ti{font-size:27px; flex:0 0 auto}
+.tip .tt{font-size:14.5px; line-height:1.55}
+.tip .tt b{display:block; font-size:12.5px; color:var(--primary-ink); margin-bottom:3px; font-weight:700}
+.acc{border-radius:var(--r-sm); background:var(--surface); box-shadow:var(--shadow); margin-bottom:9px; overflow:hidden}
+.acc>summary{padding:15px 16px; font-weight:600; font-size:15px; list-style:none; display:flex; align-items:center; gap:10px; cursor:pointer}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary::after{content:'⌄'; margin-inline-start:auto; color:var(--muted); font-size:18px; transition:transform .2s}
+.acc[open]>summary::after{transform:rotate(180deg)}
+.acc .accb{padding:0 16px 16px; font-size:14.5px; color:var(--muted); line-height:1.6}
+.pill{display:inline-block; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:700}
+.pill.p{background:var(--primary-soft); color:var(--primary-ink)}
+.pill.w{background:var(--warn-soft); color:var(--warn)}
+.pill.d{background:var(--danger-soft); color:var(--danger)}
+.pill.b{background:var(--blue-soft); color:var(--blue)}
+
+.row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 0; border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .rl{font-size:15px; font-weight:600}
+.row .rs{font-size:13px; color:var(--muted); margin-top:2px}
+.sw{position:relative; width:50px; height:30px; border-radius:99px; background:var(--line); flex:0 0 auto; transition:.22s}
+.sw::after{content:''; position:absolute; top:3px; inset-inline-end:3px; width:24px; height:24px; border-radius:50%; background:#fff; transition:.22s; box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sw.on{background:var(--primary)}
+.sw.on::after{inset-inline-end:23px}
+
+/* ───── הודעות ───── */
+.toast{
+  position:fixed; inset-inline:0; bottom:calc(84px + var(--safe-b)); z-index:80;
+  margin:0 auto; width:max-content; max-width:88%;
+  background:var(--ink); color:var(--bg); padding:12px 20px; border-radius:99px;
+  font-size:14.5px; font-weight:600; box-shadow:var(--shadow-lg); animation:up .25s ease;
+}
+.cheer{position:fixed; inset:0; z-index:90; display:grid; place-items:center; pointer-events:none; background:rgba(8,20,16,.35); animation:fade .2s}
+.cheer .cc{background:var(--surface); border-radius:26px; padding:32px 30px; text-align:center; box-shadow:var(--shadow-lg); animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+.cheer .ci{font-size:64px; line-height:1}
+.cheer h3{font-size:21px; margin:12px 0 6px}
+.cheer p{margin:0; color:var(--muted); font-size:14.5px}
+@keyframes pop{from{transform:scale(.6); opacity:0}to{transform:scale(1); opacity:1}}
+
+.banner{display:flex; align-items:center; gap:12px; background:var(--warn-soft); color:var(--warn); border-radius:var(--r-sm); padding:14px 16px; margin-bottom:14px; font-size:14px; font-weight:600}
+.banner.info{background:var(--blue-soft); color:var(--blue)}
+.banner.ok{background:var(--primary-soft); color:var(--primary-ink)}
+.banner button{margin-inline-start:auto; font-weight:700; font-size:13.5px; color:inherit; text-decoration:underline; flex:0 0 auto}
+
+.disclaimer{font-size:12.5px; color:var(--muted); line-height:1.6; background:var(--surface-2); border-radius:var(--r-sm); padding:14px; margin-top:16px}
+.srclist a{display:block; padding:11px 0; border-bottom:1px solid var(--line); color:var(--primary); font-size:14px; font-weight:600; text-decoration:none}
+.srclist a:last-child{border-bottom:0}
+
+/* ───── גרפים ───── */
+.chart{width:100%; height:170px; display:block; overflow:visible}
+.chart .gl{stroke:var(--line); stroke-width:1}
+.chart .gt{fill:var(--muted); font-size:10px}
+.bars{display:flex; align-items:flex-end; gap:6px; height:130px; margin-top:8px}
+.bars .bcol{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; height:100%; justify-content:flex-end}
+.bars .bb{width:100%; border-radius:7px 7px 3px 3px; background:var(--primary-soft); min-height:3px; position:relative; transition:height .5s cubic-bezier(.3,1,.5,1)}
+.bars .bb.over{background:var(--warn-soft)}
+.bars .bb.good{background:var(--primary)}
+.bars .bl{font-size:10.5px; color:var(--muted); white-space:nowrap}
+
+@media (min-width:560px){ .view{padding-inline:20px} .nutgrid{grid-template-columns:repeat(4,1fr)} }
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms !important; transition-duration:.01ms !important} }

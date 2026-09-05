@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<title>תזונה שלי · מעקב תזונה חכם</title>
+<meta name="description" content="אפליקציית מעקב תזונה בעברית — יומן אכילה, יעדים אישיים, תזכורות, טיפים והמלצות בריאות.">
+<meta name="theme-color" content="#0fa47f" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1614" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="תזונה שלי">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ══════════ מסך פתיחה / הקמת פרופיל ══════════ -->
+<div id="onboard" class="onboard" hidden>
+  <div class="ob-card">
+    <div class="ob-head">
+      <div class="ob-logo">🍎</div>
+      <h1>תזונה שלי</h1>
+      <p class="ob-sub">מעקב תזונה בעברית, עם יעדים שמחושבים במיוחד בשבילך.</p>
+    </div>
+
+    <div class="ob-step" data-step="1">
+      <label class="fld"><span>איך לקרוא לך?</span>
+        <input id="ob-name" type="text" dir="auto" placeholder="השם שלך" autocomplete="given-name"></label>
+      <label class="fld"><span>מין</span>
+        <div class="seg" id="ob-sex">
+          <button type="button" data-v="f" class="on">אישה</button>
+          <button type="button" data-v="m">גבר</button>
+        </div></label>
+      <label class="fld"><span>גיל</span>
+        <input id="ob-age" type="number" inputmode="numeric" min="14" max="110" placeholder="לדוגמה 34"></label>
+    </div>
+
+    <div class="ob-step" data-step="2" hidden>
+      <label class="fld"><span>גובה (ס"מ)</span>
+        <input id="ob-height" type="number" inputmode="decimal" min="120" max="220" placeholder="לדוגמה 165"></label>
+      <label class="fld"><span>משקל נוכחי (ק"ג)</span>
+        <input id="ob-weight" type="number" inputmode="decimal" min="30" max="250" step="0.1" placeholder="לדוגמה 68"></label>
+      <label class="fld"><span>רמת פעילות גופנית</span>
+        <select id="ob-activity">
+          <option value="1.2">יושבנית — כמעט ללא פעילות</option>
+          <option value="1.375" selected>קלה — 1-3 אימונים בשבוע</option>
+          <option value="1.55">בינונית — 3-5 אימונים בשבוע</option>
+          <option value="1.725">גבוהה — 6-7 אימונים בשבוע</option>
+          <option value="1.9">מאוד גבוהה — עבודה פיזית או ספורט יומי</option>
+        </select></label>
+    </div>
+
+    <div class="ob-step" data-step="3" hidden>
+      <label class="fld"><span>מה המטרה שלך?</span>
+        <div class="seg vert" id="ob-goal">
+          <button type="button" data-v="lose" class="on">ירידה במשקל</button>
+          <button type="button" data-v="keep">שמירה על המשקל</button>
+          <button type="button" data-v="gain">עלייה במשקל / מסה</button>
+        </div></label>
+      <label class="fld" id="ob-rate-wrap"><span>קצב מבוקש</span>
+        <select id="ob-rate">
+          <option value="0.25">עדין — 0.25 ק"ג בשבוע</option>
+          <option value="0.5" selected>מומלץ — 0.5 ק"ג בשבוע</option>
+          <option value="0.75">מהיר — 0.75 ק"ג בשבוע</option>
+        </select></label>
+      <label class="fld"><span>סגנון תזונה</span>
+        <select id="ob-diet">
+          <option value="all">הכול</option>
+          <option value="veg">צמחוני</option>
+          <option value="vegan">טבעוני</option>
+          <option value="gf">ללא גלוטן</option>
+        </select></label>
+    </div>
+
+    <div class="ob-step" data-step="4" hidden>
+      <p class="fld-note">סימון של מצבים רלוונטיים יעזור לנו להתאים לך המלצות בדיקות וטיפים. הכול נשאר במכשיר שלך.</p>
+      <div class="chips" id="ob-flags">
+        <button type="button" data-v="pregnancy">בהריון / מתכננת</button>
+        <button type="button" data-v="breastfeeding">מניקה</button>
+        <button type="button" data-v="family_diabetes">סוכרת במשפחה</button>
+        <button type="button" data-v="hypertension">לחץ דם גבוה</button>
+        <button type="button" data-v="anemia">אנמיה / חוסר ברזל</button>
+        <button type="button" data-v="thyroid">בלוטת התריס</button>
+      </div>
+      <div id="ob-preview" class="ob-preview"></div>
+    </div>
+
+    <div class="ob-nav">
+      <button type="button" id="ob-back" class="btn ghost" hidden>חזרה</button>
+      <div class="ob-dots"><i class="on"></i><i></i><i></i><i></i></div>
+      <button type="button" id="ob-next" class="btn primary">המשך</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ האפליקציה ══════════ -->
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="tb-right">
+      <div class="tb-title" id="tb-title">היום</div>
+      <div class="tb-sub" id="tb-sub"></div>
+    </div>
+    <button class="tb-btn" id="btn-level" aria-label="הנקודות שלי"><span id="tb-level">1</span></button>
+  </header>
+
+  <main id="view" class="view"></main>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab on" data-tab="today" role="tab"><span>🏠</span>היום</button>
+    <button class="tab" data-tab="add" role="tab"><span>➕</span>הוספה</button>
+    <button class="tab" data-tab="menus" role="tab"><span>📋</span>תפריטים</button>
+    <button class="tab" data-tab="progress" role="tab"><span>📈</span>התקדמות</button>
+    <button class="tab" data-tab="health" role="tab"><span>🩺</span>בריאות</button>
+  </nav>
+</div>
+
+<!-- חלונית תחתונה כללית -->
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-back" data-close></div>
+  <div class="sheet-card" role="dialog" aria-modal="true">
+    <button class="sheet-grab" data-close aria-label="סגירה"></button>
+    <div id="sheet-body"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+<div id="cheer" class="cheer" hidden></div>
+
+<script src="data/foods-1.js"></script>
+<script src="data/foods-2.js"></script>
+<script src="data/foods-3.js"></script>
+<script src="data/knowledge.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
