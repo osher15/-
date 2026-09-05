@@ -1,6 +1,6 @@
 /* ═══════════ תזונה שלי — עיצוב ═══════════ */
 :root{
-  --bg:#f4f7f5; --surface:#ffffff; --surface-2:#eef3f0; --line:#dfe8e3;
+  --bg:#ffffff; --surface:#ffffff; --surface-2:#f1f5f3; --line:#e6ecea;
   --ink:#12211c; --muted:#667871;
   --primary:#0d9e79; --primary-soft:#e2f5ee; --primary-ink:#07634b;
   --accent:#ff7a59; --accent-soft:#ffeee9;
@@ -8,8 +8,9 @@
   --danger:#dc3d43; --danger-soft:#fdeaea;
   --blue:#3b7de0; --blue-soft:#e7f0fd;
   --purple:#8b5cf6; --purple-soft:#f1eafe;
-  --shadow:0 1px 2px rgba(16,40,32,.05), 0 8px 24px -12px rgba(16,40,32,.18);
-  --shadow-lg:0 8px 40px -12px rgba(16,40,32,.28);
+  --shadow:0 1px 2px rgba(16,40,32,.04), 0 10px 26px -16px rgba(16,40,32,.22);
+  --shadow-lg:0 10px 46px -14px rgba(16,40,32,.3);
+  --card-border:1px solid #eef2f0;
   --r:20px; --r-sm:14px;
   --safe-b:env(safe-area-inset-bottom,0px);
   --safe-t:env(safe-area-inset-top,0px);
@@ -26,6 +27,7 @@
   --purple:#a687f8; --purple-soft:#251a3d;
   --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
   --shadow-lg:0 8px 40px -12px rgba(0,0,0,.7);
+  --card-border:1px solid #24332e;
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
@@ -39,6 +41,7 @@
   --purple:#a687f8; --purple-soft:#251a3d;
   --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
   --shadow-lg:0 8px 40px -12px rgba(0,0,0,.7);
+  --card-border:1px solid #24332e;
   color-scheme:dark;
 }
 
@@ -117,7 +120,7 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
 .topbar{
   position:sticky; top:0; z-index:20; display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
   padding:calc(var(--safe-t) + 14px) 18px 12px;
-  background:color-mix(in srgb, var(--bg) 86%, transparent);
+  background:color-mix(in srgb, var(--bg) 90%, transparent);
   backdrop-filter:saturate(180%) blur(16px); -webkit-backdrop-filter:saturate(180%) blur(16px);
   border-bottom:1px solid var(--line);
 }
@@ -132,9 +135,9 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
 .tabs{
   position:fixed; inset-inline:0; bottom:0; z-index:30; display:flex;
   padding:6px 6px calc(6px + var(--safe-b));
-  background:color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter:saturate(180%) blur(18px); -webkit-backdrop-filter:saturate(180%) blur(18px);
+  background:var(--surface);
   border-top:1px solid var(--line);
+  box-shadow:0 -10px 30px -18px rgba(16,40,32,.35);
 }
 .tab{flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 2px; border-radius:13px; font-size:11px; font-weight:600; color:var(--muted)}
 .tab span{font-size:22px; line-height:1.15; transition:transform .15s ease}
@@ -142,7 +145,10 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
 .tab.on span{transform:translateY(-2px) scale(1.1)}
 
 /* ───── כרטיסים ───── */
-.card{background:var(--surface); border-radius:var(--r); padding:18px; box-shadow:var(--shadow); margin-bottom:14px}
+.card{background:var(--surface); border:var(--card-border); border-radius:var(--r); padding:18px; box-shadow:var(--shadow); margin-bottom:14px}
+.card.tap{display:block; transition:transform .12s ease}
+.card.tap:active{transform:scale(.985)}
+.card.live{border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft), var(--shadow)}
 .card.flat{box-shadow:none; border:1px solid var(--line)}
 .card-h{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px}
 .card-h h3{font-size:17px}
@@ -173,7 +179,7 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
 .water-btns{display:flex; gap:8px}
 
 /* ───── רשימת ארוחות ───── */
-.meal{background:var(--surface); border-radius:var(--r); box-shadow:var(--shadow); margin-bottom:12px; overflow:hidden}
+.meal{background:var(--surface); border:var(--card-border); border-radius:var(--r); box-shadow:var(--shadow); margin-bottom:12px; overflow:hidden}
 .meal-h{display:flex; align-items:center; gap:11px; padding:14px 16px; width:100%; text-align:start}
 .meal-h .mi{font-size:22px}
 .meal-h .mn{flex:1; font-weight:700; font-size:16px}
@@ -193,10 +199,10 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
 .searchbar .si{position:absolute; inset-inline-start:15px; top:50%; transform:translateY(-50%); font-size:18px; opacity:.5; pointer-events:none}
 .catrow{display:flex; gap:8px; overflow-x:auto; padding:2px 0 10px; margin-inline:-16px; padding-inline:16px; scrollbar-width:none}
 .catrow::-webkit-scrollbar{display:none}
-.catrow button{flex:0 0 auto; padding:9px 14px; border-radius:999px; background:var(--surface); box-shadow:var(--shadow); font-size:14px; font-weight:600; white-space:nowrap}
+.catrow button{flex:0 0 auto; padding:9px 14px; border-radius:999px; background:var(--surface); border:var(--card-border); box-shadow:var(--shadow); font-size:14px; font-weight:600; white-space:nowrap}
 .catrow button.on{background:var(--primary); color:#fff}
 .flist{display:flex; flex-direction:column; gap:8px}
-.fitem{display:flex; align-items:center; gap:12px; width:100%; text-align:start; background:var(--surface); border-radius:var(--r-sm); padding:12px 14px; box-shadow:var(--shadow); transition:transform .1s}
+.fitem{display:flex; align-items:center; gap:12px; width:100%; text-align:start; background:var(--surface); border:var(--card-border); border-radius:var(--r-sm); padding:10px 12px; box-shadow:var(--shadow); transition:transform .1s}
 .fitem:active{transform:scale(.985)}
 .fitem .fe{font-size:24px; flex:0 0 auto}
 .fitem .ft{flex:1; min-width:0}
@@ -235,7 +241,7 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
 
 /* ───── התקדמות ───── */
 .stats{display:grid; grid-template-columns:repeat(2,1fr); gap:11px; margin-bottom:14px}
-.stat{background:var(--surface); border-radius:var(--r-sm); padding:15px; box-shadow:var(--shadow)}
+.stat{background:var(--surface); border:var(--card-border); border-radius:var(--r-sm); padding:15px; box-shadow:var(--shadow)}
 .stat b{display:block; font-size:25px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1.15}
 .stat small{color:var(--muted); font-size:12.5px}
 .lvlbar{height:11px; border-radius:99px; background:var(--surface-2); overflow:hidden; margin:10px 0 6px}
@@ -251,7 +257,7 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
 .tip .ti{font-size:27px; flex:0 0 auto}
 .tip .tt{font-size:14.5px; line-height:1.55}
 .tip .tt b{display:block; font-size:12.5px; color:var(--primary-ink); margin-bottom:3px; font-weight:700}
-.acc{border-radius:var(--r-sm); background:var(--surface); box-shadow:var(--shadow); margin-bottom:9px; overflow:hidden}
+.acc{border-radius:var(--r-sm); background:var(--surface); border:var(--card-border); box-shadow:var(--shadow); margin-bottom:9px; overflow:hidden}
 .acc>summary{padding:15px 16px; font-weight:600; font-size:15px; list-style:none; display:flex; align-items:center; gap:10px; cursor:pointer}
 .acc>summary::-webkit-details-marker{display:none}
 .acc>summary::after{content:'⌄'; margin-inline-start:auto; color:var(--muted); font-size:18px; transition:transform .2s}
@@ -308,3 +314,69 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
 
 @media (min-width:560px){ .view{padding-inline:20px} .nutgrid{grid-template-columns:repeat(4,1fr)} }
 @media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms !important; transition-duration:.01ms !important} }
+
+
+/* ═══════════ איורי מזון ═══════════ */
+.art{border-radius:12px; flex:0 0 auto; display:block}
+.fitem .art{border-radius:13px}
+.entry .art{border-radius:10px}
+.sheet-h .art{border-radius:16px}
+
+/* ═══════════ רכיבים חדשים ═══════════ */
+.hero{display:flex; gap:14px; align-items:center; background:linear-gradient(135deg,var(--primary-soft),var(--accent-soft));
+  border-radius:var(--r); padding:18px; margin-bottom:16px}
+.hero-i{font-size:34px; flex:0 0 auto}
+.hero h3{font-size:18px; margin-bottom:4px}
+.hero p{margin:0; font-size:14px; color:var(--muted); line-height:1.5}
+.hint{font-size:13px; color:var(--muted); line-height:1.55; margin:8px 4px 16px}
+.btn.big{min-height:56px; font-size:16.5px; border-radius:17px}
+.seg.big{margin-bottom:16px}
+.seg.big button{min-height:46px; font-size:15px}
+.chipsrow{display:flex; gap:7px; flex-wrap:wrap; margin-top:12px}
+.kv{display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:13.5px; color:var(--muted)}
+.kv b{color:var(--ink); font-size:15px}
+.meal-h.static{cursor:default}
+
+/* מדדים גדולים */
+.bigstats{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:14px}
+.bigstats div{background:var(--surface-2); border-radius:13px; padding:11px 4px; text-align:center}
+.bigstats b{display:block; font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1.2}
+.bigstats small{font-size:10.5px; color:var(--muted)}
+.bigstats.sm b{font-size:16px}
+
+/* מאזן אנרגיה */
+.energy{display:flex; align-items:center; gap:6px; margin:4px 0 14px}
+.energy .ecell{flex:1; text-align:center; border-radius:13px; padding:12px 4px}
+.energy .ecell b{display:block; font-size:19px; font-weight:800; font-variant-numeric:tabular-nums}
+.energy .ecell small{font-size:11px; opacity:.8}
+.energy .in{background:var(--warn-soft); color:var(--warn)}
+.energy .out{background:var(--primary-soft); color:var(--primary-ink)}
+.energy .net{background:var(--blue-soft); color:var(--blue)}
+.energy .eop{font-size:17px; color:var(--muted); font-weight:700; flex:0 0 auto}
+
+/* מסלול */
+.routebox{background:var(--surface-2); border-radius:var(--r-sm); padding:10px; margin-top:14px}
+.route{width:100%; height:auto; display:block}
+.walkcard .card-h{margin-bottom:6px}
+
+/* הוראות והעתקת כתובת */
+.steps{margin:10px 0; padding-inline-start:20px; line-height:1.85; color:var(--muted)}
+.steps b{color:var(--ink)}
+.codebox{display:flex; align-items:center; gap:10px; background:var(--surface-2); border-radius:12px; padding:11px 13px; margin-top:8px}
+.codebox code{flex:1; min-width:0; font-size:11.5px; direction:ltr; text-align:left; word-break:break-all;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--ink)}
+
+/* בונה התפריט */
+.splits{display:grid; grid-template-columns:repeat(auto-fit,minmax(104px,1fr)); gap:9px}
+.split{display:flex; flex-direction:column; align-items:center; gap:3px; padding:14px 6px; border-radius:16px;
+  background:var(--surface); border:1.5px solid var(--line); box-shadow:var(--shadow); transition:.15s}
+.split.on{border-color:var(--primary); background:var(--primary-soft)}
+.split i{font-size:25px; font-style:normal; line-height:1.1}
+.split b{font-size:13.5px; font-weight:700}
+.split span{font-size:10.5px; color:var(--muted); font-variant-numeric:tabular-nums}
+.split.on b{color:var(--primary-ink)}
+.legrow{display:flex; align-items:center; gap:8px; font-size:13.5px}
+.legrow i{width:11px; height:11px; border-radius:4px; flex:0 0 auto}
+.legrow span{flex:0 0 62px; color:var(--muted); font-weight:600}
+.legrow b{font-variant-numeric:tabular-nums; font-size:15px}
+.legrow small{color:var(--muted); font-size:11.5px; margin-inline-start:auto}

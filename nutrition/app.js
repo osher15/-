@@ -60,13 +60,17 @@ const MEALS = [
 
 /* ══════════ מצב ══════════ */
 let S = null;
-let UI = { tab: 'today', date: dkey(), cat: 'fav', q: '' };
+let UI = { tab: 'today', date: dkey(), cat: 'recent', q: '' };
 
 const blank = () => ({
   v: 1, profile: null, days: {}, weights: [], points: 0, badges: [],
   favs: [], recents: [], custom: [],
   settings: {
     theme: 'auto', notifications: false,
+    stepGoal: 8000,
+    // ברירת מחדל כבויה: היעד הקלורי כבר כולל את רמת הפעילות שבפרופיל,
+    // ולכן הוספת פעילות יומיומית תיספר פעמיים
+    burnAdjust: false,
     reminders: [
       { id: 'r1', time: '08:00', label: 'בוקר טוב! מה אכלת לארוחת בוקר?', on: true },
       { id: 'r2', time: '11:00', label: 'תזכורת מים — כוס עכשיו 💧', on: true },
@@ -122,6 +126,8 @@ function computeTargets(p) {
   };
 }
 const targets = () => S.profile ? (S.profile.custom || computeTargets(S.profile)) : computeTargets({ sex: 'f', age: 35, height: 165, weight: 68, activity: 1.375, goal: 'keep', rate: .5 });
+/* היעד בפועל — היעד הבסיסי ועוד הקלוריות שנשרפו, אם המשתמשת ביקשה */
+const kcalTarget = (k = UI.date) => targets().kcal + (typeof burnBonus === 'function' ? burnBonus(k) : 0);
 
 function bmi(p = S.profile) { return p && p.height ? p.weight / Math.pow(p.height / 100, 2) : 0; }
 function bmiInfo(v) {
@@ -135,9 +141,11 @@ function bmiInfo(v) {
 
 /* סיכום יומי */
 function totals(k = UI.date) {
-  const t = { kcal: 0, p: 0, ch: 0, ft: 0, fb: 0, sg: 0, na: 0 };
+  const t = { kcal: 0, p: 0, ch: 0, ft: 0, fb: 0, sg: 0, na: 0, sgf: 0 };
   for (const e of day(k).entries) {
-    t.kcal += e.kcal; t.p += e.p; t.ch += e.ch; t.ft += e.ft; t.fb += e.fb; t.sg += e.sg; t.na += e.na;
+    t.kcal += e.kcal; t.p += e.p; t.ch += e.ch; t.ft += e.ft;
+    t.fb += e.fb; t.sg += e.sg; t.na += e.na;
+    t.sgf += (e.sgf ?? e.sg);          // רשומות ישנות נספרות כסוכר חופשי
   }
   return t;
 }
@@ -150,9 +158,22 @@ function mealTotals(k = UI.date) {
 /* ══════════ מאגר המזון ══════════ */
 const allFoods = () => [...(window.FOOD_DB || []), ...S.custom];
 function findFood(n) { return allFoods().find(f => f.n === n); }
+/* סוכר טבעי מול סוכר חופשי.
+   ארגון הבריאות העולמי מגביל "סוכר חופשי" בלבד — סוכר שהוסף למזון,
+   ובנוסף הסוכר שבמיצים, בדבש ובסירופים. הסוכר שבפרי שלם, בירק,
+   בקטנייה ובחלב או יוגורט טבעי אינו נספר במכסה. */
+const INTRINSIC = f =>
+  (f.c === 'fruit' && !/מיץ|נקטר/.test(f.n)) ||
+  f.c === 'veg' || f.c === 'legume' ||
+  /^חלב |^יוגורט טבעי|^יוגורט 0%|^יוגורט יווני|^קוטג|^גבינה לבנה|^גבינת פטה|^ריקוטה|^לאבנה|^אשל/.test(f.n);
+
 function nutFor(food, grams) {
   const r = grams / 100;
-  return { kcal: food.k * r, p: food.p * r, ch: food.ch * r, ft: food.ft * r, fb: food.fb * r, sg: food.sg * r, na: food.na * r };
+  return {
+    kcal: food.k * r, p: food.p * r, ch: food.ch * r, ft: food.ft * r,
+    fb: food.fb * r, sg: food.sg * r, na: food.na * r,
+    sgf: INTRINSIC(food) ? 0 : food.sg * r
+  };
 }
 function searchFoods(q) {
   q = q.trim().toLowerCase();
@@ -193,15 +214,15 @@ function streak() {
 }
 /* בדיקת יעדים והענקת הישגים — נקרא אחרי כל שינוי ביום */
 function checkGoals(k = UI.date) {
-  const T = targets(), t = totals(k), d = day(k);
+  const T = targets(), t = totals(k), d = day(k), KT = kcalTarget(k);
   const done = {
-    kcal: t.kcal >= T.kcal * 0.85 && t.kcal <= T.kcal * 1.1,
+    kcal: t.kcal >= KT * 0.85 && t.kcal <= KT * 1.1,
     protein: t.p >= T.protein * 0.9,
     fiber: t.fb >= T.fiber * 0.9,
     water: d.water >= T.water,
-    sugar: t.sg <= T.sugar && t.kcal > 0,
+    sugar: t.sgf <= T.sugar && t.kcal > 0,
     // "מתחת למכסה" נחשב רק אחרי שתועד רוב היום, אחרת הוא ניתן בבוקר ומטעה
-    sugarSolid: t.sg <= T.sugar && t.kcal >= T.kcal * 0.7
+    sugarSolid: t.sgf <= T.sugar && t.kcal >= KT * 0.7
   };
   d.goals = done;
   const st = streak();
@@ -221,6 +242,7 @@ function checkGoals(k = UI.date) {
   if (vg >= 5) grantBadge('veg5');
   if (new Set(S.recents).size >= 50) grantBadge('explorer');
   if (S.weights.length >= 4) grantBadge('weigh4');
+  if ((d.steps || 0) >= (typeof stepGoal === 'function' ? stepGoal() : 8000)) grantBadge('steps');
   const perfect = done.kcal && done.protein && done.water && done.sugar;
   if (perfect && !d.perfectAwarded) { d.perfectAwarded = 1; addPoints(20); grantBadge('perfect'); }
   const pdays = Object.values(S.days).filter(x => x.perfectAwarded).length;
@@ -240,7 +262,8 @@ function addEntry(food, unitIdx, qty, meal, k = UI.date) {
     id: Date.now() + '' + Math.random().toString(36).slice(2, 6),
     name: food.n, e: food.e, cat: food.c, meal, grams: r1(grams),
     unit: qty === 1 ? u.l : `${r1(qty)} × ${u.l}`,
-    kcal: r0(n.kcal), p: r1(n.p), ch: r1(n.ch), ft: r1(n.ft), fb: r1(n.fb), sg: r1(n.sg), na: r0(n.na),
+    kcal: r0(n.kcal), p: r1(n.p), ch: r1(n.ch), ft: r1(n.ft), fb: r1(n.fb),
+    sg: r1(n.sg), sgf: r1(n.sgf), na: r0(n.na),
     ts: Date.now()
   });
   S.recents = [food.n, ...S.recents.filter(x => x !== food.n)].slice(0, 40);
@@ -311,7 +334,8 @@ function macroBar(label, val, target, color, unit = 'ג׳', dec = 0) {
 
 function viewToday() {
   const T = targets(), t = totals(), d = day(), mt = mealTotals();
-  const left = T.kcal - t.kcal, pct = t.kcal / T.kcal;
+  const KT = kcalTarget(), burned = burnToday();
+  const left = KT - t.kcal, pct = t.kcal / KT;
   const name = S.profile?.name ? esc(S.profile.name) : '';
   const h = new Date().getHours();
   const hello = h < 11 ? 'בוקר טוב' : h < 16 ? 'צהריים טובים' : h < 20 ? 'אחר צהריים טובים' : 'ערב טוב';
@@ -338,7 +362,7 @@ function viewToday() {
     <div class="ring-wrap">
       ${ring(pct, t.kcal, left)}
       <div class="ring-side">
-        <div style="font-size:13px;color:var(--muted)">נאכלו <b style="color:var(--ink);font-size:15px"><bdi>${r0(t.kcal)}</bdi></b> מתוך <bdi>${T.kcal}</bdi> קק"ל</div>
+        <div style="font-size:13px;color:var(--muted)">נאכלו <b style="color:var(--ink);font-size:15px"><bdi>${r0(t.kcal)}</bdi></b> מתוך <bdi>${KT}</bdi> קק"ל${burned && S.settings.burnAdjust ? ` <span class="pill p">+<bdi>${burned}</bdi> מפעילות</span>` : ''}</div>
         ${macroBar('חלבון', t.p, T.protein, 'var(--blue)')}
         ${macroBar('פחמימות', t.ch, T.carbs, 'var(--warn)')}
         ${macroBar('שומן', t.ft, T.fat, 'var(--purple)')}
@@ -359,15 +383,33 @@ function viewToday() {
     </div>
   </div>`;
 
+  /* תנועה */
+  {
+    const steps = d.steps || 0, sg = stepGoal();
+    const walks = (d.walks || []).length;
+    html += `<button class="card tap" data-tab="activity" style="width:100%;text-align:start">
+      <div class="card-h"><h3>👣 תנועה</h3><span class="link">פתיחה ›</span></div>
+      <div class="macro"><span class="mk">צעדים</span>
+        <span class="mbar"><i style="width:${clamp(steps / sg, 0, 1) * 100}%;background:var(--primary)"></i></span>
+        <span class="mv"><bdi>${steps.toLocaleString('he-IL')} / ${sg.toLocaleString('he-IL')}</bdi></span></div>
+      <div class="chipsrow" style="margin-top:10px">
+        <span class="pill b">🔥 <bdi>${burned}</bdi> קלוריות נשרפו</span>
+        <span class="pill p">📏 <bdi>${(steps * strideM() / 1000).toFixed(1)}</bdi> ק"מ</span>
+        ${walks ? `<span class="pill w">🛰️ <bdi>${walks}</bdi> מסלולים</span>` : ''}
+      </div></button>`;
+  }
+
   /* סוכר ונתרן */
-  const sPct = t.sg / T.sugar, naPct = t.na / T.sodium;
+  const sPct = t.sgf / T.sugar, naPct = t.na / T.sodium;
+  const natural = Math.max(0, t.sg - t.sgf);
   html += `<div class="card">
     <div class="card-h"><h3>מכסות יומיות</h3></div>
-    ${macroBar('סוכר', t.sg, T.sugar, sPct > 1 ? 'var(--danger)' : sPct > .8 ? 'var(--warn)' : 'var(--primary)')}
+    ${macroBar('סוכר חופשי', t.sgf, T.sugar, sPct > 1 ? 'var(--danger)' : sPct > .8 ? 'var(--warn)' : 'var(--primary)')}
     ${macroBar('נתרן', t.na / 1000, T.sodium / 1000, naPct > 1 ? 'var(--danger)' : naPct > .8 ? 'var(--warn)' : 'var(--primary)', 'ג׳', 1)}
     <div style="font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5">
-      ${sPct > 1 ? '⚠️ עברת את מכסת הסוכר החופשי היומית (10% מהקלוריות לפי המלצת ארגון הבריאות העולמי).'
-        : `יעד אידיאלי לסוכר: עד <bdi>${T.sugarIdeal}</bdi> גרם (5% מהקלוריות). מכסת הנתרן: <bdi>2000</bdi> מ"ג = כ-<bdi>5</bdi> גרם מלח.`}
+      ${sPct > 1 ? '⚠️ עברת את מכסת הסוכר החופשי היומית (10% מהקלוריות, לפי המלצת ארגון הבריאות העולמי).'
+        : `יעד אידיאלי: עד <bdi>${T.sugarIdeal}</bdi> גרם (5% מהקלוריות). מכסת הנתרן: <bdi>2000</bdi> מ"ג = כ-<bdi>5</bdi> גרם מלח.`}
+      ${natural > 1 ? `<br>בנוסף <bdi>${r0(natural)}</bdi> גרם סוכר טבעי מפירות, ירקות וחלב — לא נספר במכסה.` : ''}
     </div>
   </div>`;
 
@@ -382,7 +424,7 @@ function viewToday() {
         <span class="madd">+</span>
       </button>
       ${items.map(e => `<div class="entry">
-        <span class="ee">${e.e || '🍽️'}</span>
+        ${window.artSVG(findFood(e.name) || { n: e.name, c: e.cat || 'custom' }, 36)}
         <span class="et"><b>${esc(e.name)}</b><small>${esc(e.unit)}${/\d/.test(e.unit) ? '' : ` · <bdi>${r0(e.grams)}</bdi> גרם`} · חלבון <bdi>${r1(e.p)}</bdi> ג׳</small></span>
         <span class="ek num">${e.kcal}</span>
         <button class="ex" data-del="${e.id}" aria-label="מחיקה">✕</button>
@@ -407,12 +449,13 @@ function foodRow(f) {
   const u = f.u[0];
   const k = r0(f.k * u.g / 100);
   return `<button class="fitem" data-food="${esc(f.n)}">
-    <span class="fe">${f.e}</span>
-    <span class="ft"><b>${esc(f.n)}</b><small>${esc(u.l)}</small></span>
+    ${window.artSVG(f, 44)}
+    <span class="ft"><b>${esc(f.n)}</b><small>${esc(u.l)} · חלבון <bdi>${r1(f.p * u.g / 100)}</bdi> ג׳</small></span>
     <span class="fk"><b class="num">${k}</b><small>קק"ל</small></span>
   </button>`;
 }
 function viewAdd() {
+  if (UI.cat === 'recent' && !S.recents.length && !UI.q) UI.cat = S.favs.length ? 'fav' : 'fruit';
   let list = [];
   if (UI.q) list = searchFoods(UI.q);
   else if (UI.cat === 'fav') list = S.favs.map(findFood).filter(Boolean);
@@ -460,7 +503,7 @@ function renderFoodSheet() {
   const g = f.u[ui].g * qty, n = nutFor(f, g);
   const fav = S.favs.includes(f.n);
   sheet(`
-    <div class="sheet-h"><span class="she">${f.e}</span>
+    <div class="sheet-h">${window.artSVG(f, 62)}
       <div style="flex:1"><h3>${esc(f.n)}</h3><small><bdi>${r0(g)}</bdi> גרם · <bdi>${f.k}</bdi> קק"ל ל-100 גרם</small></div>
       <button class="tb-btn" id="fav" style="background:${fav ? 'var(--warn-soft)' : 'var(--surface-2)'}">${fav ? '⭐' : '☆'}</button>
     </div>
@@ -474,7 +517,7 @@ function renderFoodSheet() {
       <div><b class="num">${r1(n.ch)}</b><small>פחמימות (ג׳)</small></div>
       <div><b class="num">${r1(n.ft)}</b><small>שומן (ג׳)</small></div>
       <div><b class="num">${r1(n.fb)}</b><small>סיבים (ג׳)</small></div>
-      <div><b class="num">${r1(n.sg)}</b><small>סוכר (ג׳)</small></div>
+      <div><b class="num">${r1(n.sg)}</b><small>סוכר${n.sgf === 0 && n.sg > 0.5 ? ' טבעי' : ''} (ג׳)</small></div>
       <div><b class="num">${r0(n.na)}</b><small>נתרן (מ"ג)</small></div>
       <div><b class="num">${r0(n.kcal / targets().kcal * 100)}%</b><small>מהיעד היומי</small></div>
     </div>
@@ -529,6 +572,12 @@ function menuTotals(m) {
   return t;
 }
 function viewMenus() {
+  const sub = UI.menuSub || 'build';
+  let html = `<div class="seg big"><button data-msub="build" class="${sub === 'build' ? 'on' : ''}">🧩 בונה תפריט</button>
+    <button data-msub="ready" class="${sub === 'ready' ? 'on' : ''}">📋 תפריטים מוכנים</button></div>`;
+  return html + (sub === 'build' ? viewBuilder() : viewReadyMenus());
+}
+function viewReadyMenus() {
   const T = targets();
   let html = `<div class="tip"><div class="ti">📋</div><div class="tt"><b>תפריטים מובנים</b>
     ימים שלמים שנבנו לפי עקרונות משרד הבריאות. אפשר לטעון תפריט ליום שלך ואז לערוך בחופשיות — הוא רק נקודת פתיחה.</div></div>`;
@@ -628,6 +677,12 @@ function kcalBars() {
   <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">
     ממוצע שבועי: <b class="num">${r0(vals.filter(v => v > 0).reduce((a, b) => a + b, 0) / Math.max(1, vals.filter(v => v > 0).length))}</b> קק"ל · יעד <b class="num">${T.kcal}</b></div>`;
 }
+function viewMe() {
+  const sub = UI.meSub || 'progress';
+  const head = `<div class="seg big"><button data-mesub="progress" class="${sub === 'progress' ? 'on' : ''}">📈 התקדמות</button>
+    <button data-mesub="health" class="${sub === 'health' ? 'on' : ''}">🩺 בריאות</button></div>`;
+  return head + (sub === 'progress' ? viewProgress() : viewHealth());
+}
 function viewProgress() {
   const T = targets(), st = streak(), lv = level();
   const logged = Object.values(S.days).filter(d => d.entries.length).length;
@@ -673,7 +728,7 @@ function viewProgress() {
     html += `<div class="card"><div class="card-h"><h3>📈 ממוצעים שבועיים</h3></div>
       ${macroBar('חלבון', avg(x => x.t.p), T.protein, 'var(--blue)')}
       ${macroBar('סיבים', avg(x => x.t.fb), T.fiber, 'var(--primary)')}
-      ${macroBar('סוכר', avg(x => x.t.sg), T.sugar, avg(x => x.t.sg) > T.sugar ? 'var(--danger)' : 'var(--primary)')}
+      ${macroBar('סוכר חופשי', avg(x => x.t.sgf), T.sugar, avg(x => x.t.sgf) > T.sugar ? 'var(--danger)' : 'var(--primary)')}
       ${macroBar('מים', wk.reduce((a, x) => a + (x.d?.water || 0), 0) / wk.length / 1000, r1(T.water / 1000), 'var(--blue)', 'ל׳', 1)}
       <div style="font-size:13px;color:var(--muted);margin-top:12px;line-height:1.6">${weeklyInsight(wk, T)}</div>
     </div>`;
@@ -685,7 +740,7 @@ function weeklyInsight(wk, T) {
   const out = [];
   if (avg(x => x.t.fb) < T.fiber * .7) out.push('הסיבים נמוכים — קטנייה אחת ביום או החלפת לחם לבן במלא יסגרו את הפער.');
   if (avg(x => x.t.p) < T.protein * .8) out.push('החלבון מתחת ליעד. ביצה, יוגורט יווני או קטניות בכל ארוחה יעזרו לשובע.');
-  if (avg(x => x.t.sg) > T.sugar) out.push('הסוכר גבוה מהמומלץ. שווה לבדוק מאיפה הוא מגיע — לרוב זו שתייה מתוקה.');
+  if (avg(x => x.t.sgf) > T.sugar) out.push('הסוכר החופשי גבוה מהמומלץ. שווה לבדוק מאיפה הוא מגיע — לרוב זו שתייה מתוקה או ממרחים.');
   if (avg(x => x.t.na) > 2000) out.push('הנתרן גבוה. לרוב מקורו במזון מוכן, גבינות מלוחות וחטיפים.');
   if (avg(x => (x.d?.water || 0)) < T.water * .7) out.push('שתיית המים נמוכה מהיעד — בקבוק קבוע על השולחן עושה פלאים.');
   if (!out.length) return '✨ שבוע מצוין! הממוצעים שלך קרובים ליעדים בכל הפרמטרים. ככה ממשיכים.';
@@ -955,6 +1010,25 @@ function saveTargets() {
   save(); closeSheet(); render(); toast('היעדים עודכנו ✅');
 }
 
+function openStepsSheet() {
+  const d = day();
+  sheet(`<div class="sheet-h"><span class="she">👣</span><div><h3>עדכון ידני</h3>
+      <small>אפשר להעתיק את המספר מאפליקציית הבריאות או מהשעון</small></div></div>
+    <label class="fld"><span>צעדים ב${prettyDate(UI.date)}</span>
+      <input id="st-val" type="number" inputmode="numeric" min="0" max="200000" value="${d.steps || ''}" placeholder="לדוגמה 8500"></label>
+    <label class="fld"><span>קלוריות שנשרפו באימון (לא חובה)</span>
+      <input id="st-burn" type="number" inputmode="numeric" min="0" max="5000" value="${d.burnManual || ''}" placeholder="לדוגמה 250"></label>
+    <button class="btn primary block" id="steps-save">שמירה</button>`);
+}
+function saveSteps() {
+  const d = day();
+  const v = parseInt($('#st-val').value), b = parseInt($('#st-burn').value);
+  d.steps = (v >= 0 && v < 200000) ? v : 0;
+  d.burnManual = (b >= 0 && b < 5000) ? b : 0;
+  checkGoals(); save(); closeSheet(); render();
+  toast('עודכן ✅');
+}
+
 /* ייצוא / ייבוא */
 function exportData() {
   const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
@@ -1048,7 +1122,7 @@ function obNext() {
 /* ══════════════════════════════════════════════════════════
    רינדור וניתוב
    ══════════════════════════════════════════════════════════ */
-const TITLES = { today: 'היום', add: 'הוספת מזון', menus: 'תפריטים', progress: 'ההתקדמות שלי', health: 'בריאות ויעדים' };
+const TITLES = { today: 'היום', add: 'הוספת מזון', activity: 'תנועה', menus: 'תפריטים', me: 'אני' };
 function render() {
   if (!S.profile) return;
   const v = $('#view');
@@ -1057,15 +1131,17 @@ function render() {
 
   v.innerHTML = UI.tab === 'today' ? viewToday()
     : UI.tab === 'add' ? viewAdd()
-      : UI.tab === 'menus' ? viewMenus()
-        : UI.tab === 'progress' ? viewProgress()
-          : viewHealth();
+      : UI.tab === 'activity' ? viewActivity()
+        : UI.tab === 'menus' ? viewMenus()
+          : viewMe();
 
   $('#tb-title').textContent = TITLES[UI.tab];
   const t = totals(), T = targets();
   $('#tb-sub').innerHTML = UI.tab === 'today'
-    ? `<bdi>${r0(t.kcal)} / ${T.kcal}</bdi> קק"ל · 🔥 <bdi>${streak()}</bdi>`
-    : `<bdi>${S.points}</bdi> נקודות`;
+    ? `<bdi>${r0(t.kcal)} / ${kcalTarget()}</bdi> קק"ל · 🔥 <bdi>${streak()}</bdi>`
+    : UI.tab === 'activity'
+      ? `<bdi>${(day().steps || 0).toLocaleString('he-IL')}</bdi> צעדים · <bdi>${burnToday()}</bdi> קק"ל`
+      : `<bdi>${S.points}</bdi> נקודות`;
   $('#tb-level').textContent = level();
   $$('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === UI.tab));
 
@@ -1083,7 +1159,7 @@ function applyTheme() {
    אירועים
    ══════════════════════════════════════════════════════════ */
 document.addEventListener('click', ev => {
-  const el = ev.target.closest('[data-tab],[data-day],[data-water],[data-del],[data-addmeal],[data-cat],[data-food],[data-loadmenu],[data-theme],[data-remsw],[data-dismiss-rem],[data-q],[data-close],button');
+  const el = ev.target.closest('[data-tab],[data-day],[data-water],[data-del],[data-addmeal],[data-cat],[data-food],[data-loadmenu],[data-theme],[data-remsw],[data-dismiss-rem],[data-q],[data-close],[data-msub],[data-mesub],[data-split],[data-bdiet],[data-bkcal],[data-swap],[data-delwalk],[data-stepgoal],button');
   if (!el) return;
   const d = el.dataset || {};
 
@@ -1096,12 +1172,25 @@ document.addEventListener('click', ev => {
   }
   if (d.water) return addWater(+d.water);
   if (d.del) return delEntry(d.del);
-  if (d.addmeal) { UI.tab = 'add'; UI.q = ''; UI.pendMeal = d.addmeal; render(); return; }
+  if (d.addmeal) {
+    UI.tab = 'add'; UI.q = ''; UI.pendMeal = d.addmeal;
+    // קטגוריית פתיחה שיש בה תוכן, כדי שהמסך לא ייפתח ריק
+    if (UI.cat === 'recent' && !S.recents.length) UI.cat = S.favs.length ? 'fav' : 'fruit';
+    render(); return;
+  }
   if (d.cat) { UI.cat = d.cat; UI.q = ''; render(); return; }
   if (d.food) { openFood(d.food, UI.pendMeal); UI.pendMeal = null; return; }
   if (d.loadmenu) return loadMenu(+d.loadmenu);
   if (d.theme) { S.settings.theme = d.theme; save(); applyTheme(); render(); return; }
   if (d.dismissRem) return dismissReminder(d.dismissRem);
+  if (d.msub) { UI.menuSub = d.msub; window.scrollTo({ top: 0 }); render(); return; }
+  if (d.mesub) { UI.meSub = d.mesub; window.scrollTo({ top: 0 }); render(); return; }
+  if (d.split) { (UI.build ||= {}).split = d.split; render(); return; }
+  if (d.bdiet) { (UI.build ||= {}).diet = d.bdiet; render(); return; }
+  if (d.bkcal) { (UI.build ||= {}).kcal = +d.bkcal; render(); return; }
+  if (d.swap) { const [m, i] = d.swap.split(':'); return swapItem(m, +i); }
+  if (d.delwalk) return delWalk(d.delwalk);
+  if (d.stepgoal) { S.settings.stepGoal = +d.stepgoal; save(); render(); return; }
   if (d.remsw) {
     const r = S.settings.reminders.find(x => x.id === d.remsw);
     if (r) { r.on = !r.on; save(); scheduleNotifications(); render(); }
@@ -1113,7 +1202,7 @@ document.addEventListener('click', ev => {
   }
 
   switch (el.id) {
-    case 'btn-level': return go('progress');
+    case 'btn-level': { UI.meSub = 'progress'; return go('me'); }
     case 'doadd': {
       const { f, ui, qty, meal } = SHEET_FOOD;
       addEntry(f, ui, qty, meal); closeSheet();
@@ -1135,6 +1224,33 @@ document.addEventListener('click', ev => {
     case 't-save': return saveTargets();
     case 't-auto': { delete S.profile.custom; save(); closeSheet(); render(); toast('חזרנו לחישוב האוטומטי'); return; }
     case 'notif-sw': return toggleNotifications();
+    case 'walk-start': return walkStart();
+    case 'walk-stop': return walkStop();
+    case 'ped-sw': {
+      if (ACT.ped.on) { pedometerStop(); render(); }
+      else { pedometerStart().then(render); }
+      return;
+    }
+    case 'burn-sw': {
+      S.settings.burnAdjust = !S.settings.burnAdjust;
+      save(); render(); return;
+    }
+    case 'edit-steps': return openStepsSheet();
+    case 'steps-save': return saveSteps();
+    case 'import-health': return importHealthXML();
+    case 'copy-url': {
+      const txt = $('#sc-url')?.textContent || '';
+      (navigator.clipboard?.writeText(txt) || Promise.reject())
+        .then(() => toast('הכתובת הועתקה ✅'))
+        .catch(() => toast('אפשר להעתיק ידנית מהמסך'));
+      return;
+    }
+    case 'do-build': {
+      BUILT = buildMenu(UI.build || {});
+      window.scrollTo({ top: 0 }); render();
+      toast('התפריט מוכן 🎉'); return;
+    }
+    case 'load-built': return loadBuilt();
     case 'export': return exportData();
     case 'import': return importData();
     case 'reset':
@@ -1207,8 +1323,14 @@ function boot() {
   if (S.profile) {
     $('#app').hidden = false;
     UI.date = dkey();
+    ingestURL();
     render();
     scheduleNotifications();
+    // מד הצעדים דורש מחווה של המשתמשת כדי לקבל אישור, ולכן רק מסומן כדולק
+    if (S.settings.pedometer && typeof DeviceMotionEvent !== 'undefined'
+        && typeof DeviceMotionEvent.requestPermission !== 'function') {
+      window.addEventListener('devicemotion', onMotion); ACT.ped.on = true;
+    }
   } else {
     $('#onboard').hidden = false;
     obShow();

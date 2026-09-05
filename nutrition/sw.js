@@ -1,7 +1,9 @@
-const CACHE = 'tzuna-v1';
+const CACHE = 'tzuna-v2';
 const ASSETS = [
-  './', './index.html', './styles.css', './app.js', './manifest.webmanifest',
-  './data/foods-1.js', './data/foods-2.js', './data/foods-3.js', './data/knowledge.js',
+  './', './index.html', './styles.css', './app.js', './activity.js', './builder.js',
+  './manifest.webmanifest',
+  './data/foods-1.js', './data/foods-2.js', './data/foods-3.js',
+  './data/knowledge.js', './data/art.js',
   './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'
 ];
 
